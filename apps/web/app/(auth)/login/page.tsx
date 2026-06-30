@@ -176,7 +176,8 @@ function LoginPageInner() {
 
         <GoldButton
           type="submit"
-          disabled={isSubmitting || IS_PROD_KEY_MISSING || (!!CF_SITE_KEY && !turnstileToken)}
+          disabled={isSubmitting}
+          // disabled={isSubmitting || IS_PROD_KEY_MISSING || (!!CF_SITE_KEY && !turnstileToken)}
           fullWidth
           size="md"
         >
