@@ -95,7 +95,7 @@ export async function fetchPlayersList(filters: PlayersListFilters): Promise<{
       break
     case 'new': {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-      conditions.push(sql`${schema.players.firstSeenAt} >= ${sevenDaysAgo}`)
+      conditions.push(sql`${schema.players.firstSeenAt} >= ${sevenDaysAgo.toISOString()}`)
       break
     }
     case 'at-risk':

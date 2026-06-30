@@ -27,10 +27,13 @@ export async function POST(req: NextRequest) {
   const session = await getPlayerSession()
   if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
-  // Allow callers to suggest a return URL (e.g. /cashier/redeem). Defaults
-  // to the account/kyc page so the player sees their level update post-flow.
+  // Footprint requires an absolute redirect_url for the popup callback.
+  // We always point it at /account/kyc/callback — a minimal page that
+  // posts coinfrenzy:kyc-complete to window.opener and calls window.close().
+  // Callers may override via ?returnUrl but the callback page is the default.
+  const playerBase = process.env.PLAYER_BASE_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
   const url = new URL(req.url)
-  const returnUrl = url.searchParams.get('returnUrl') ?? undefined
+  const returnUrl = url.searchParams.get('returnUrl') ?? `${playerBase}/account/kyc/callback`
 
   const actor: Actor = { kind: 'player', playerId: session.player.id }
   const queue = createAfterCommitQueue(consoleLogger)

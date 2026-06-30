@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Gift, Users } from 'lucide-react'
 
-import { GoldButton, PromoBanner } from '@coinfrenzy/ui/player'
+import { GoldButton, LobbyHero } from '@coinfrenzy/ui/player'
 
 import { requirePlayerSession } from '@/lib/player-session'
 
@@ -20,21 +20,19 @@ export default async function ReferralsPage() {
   const link = `https://coinfrenzy.com/signup?ref=${code}`
 
   return (
-    <div className="mx-auto max-w-3xl py-4">
+    <div className="py-4">
       <h1 className="cf-headline text-2xl font-bold uppercase tracking-wider text-white">
         Referrals
       </h1>
+      <LobbyHero
+        headline="Refer Friends. Earn Coins."
+        subhead="Earn bonus coins when friends play"
+        alt="Refer Friends. Earn Coins. — earn bonus coins when friends play"
+        desktopSrc="/brand/banners/referral-banner.webp"
+        mobileSrc="/brand/banners/referral-banner.webp"
+      />
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-[var(--cf-border-default)] bg-[var(--cf-bg-card)]">
-        <PromoBanner
-          title="Refer Friends. Earn Coins."
-          subtitle="Earn bonus coins when friends play"
-          imageSrc="/brand/banners/refer-friends-desktop.png"
-          imageMobileSrc="/brand/banners/refer-friends-mobile.png"
-          alt="Refer Friends. Earn Coins. — earn bonus coins when friends play"
-          className="rounded-none border-0 border-b border-[var(--cf-border-default)]"
-        />
-
+      <div className="mt-6 overflow-hidden rounded-lg border border-[var(--cf-border-default)] bg-[var(--cf-bg-card)]">
         <div className="grid gap-4 p-5 sm:grid-cols-2">
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--cf-gold-light)]">

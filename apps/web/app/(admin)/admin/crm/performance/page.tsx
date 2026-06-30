@@ -80,7 +80,7 @@ export default async function Page() {
                 className="group flex items-center justify-between rounded-lg border border-line-subtle bg-surface px-4 py-4 transition hover:border-accent/40 hover:bg-surface-hover"
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-md bg-surface-elevated text-ink-secondary group-hover:text-accent">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-md bg-surface-elevated text-ink-secondary">
                     <Icon className="h-5 w-5" />
                   </span>
                   <div>
@@ -88,7 +88,7 @@ export default async function Page() {
                     <div className="text-xs text-ink-tertiary">{s.description}</div>
                   </div>
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-ink-tertiary transition group-hover:text-accent" />
+                <ArrowUpRight className="h-4 w-4 text-ink-tertiary transition" />
               </Link>
             )
           })}
@@ -98,13 +98,10 @@ export default async function Page() {
           <Card>
             <div className="flex items-center justify-between border-b border-line-subtle px-4 py-3">
               <div className="flex items-center gap-2">
-                <Workflow className="h-4 w-4 text-accent" />
+                <Workflow className="h-4 w-4" />
                 <h3 className="text-sm font-semibold text-ink-primary">Live activity</h3>
               </div>
-              <Link
-                href="/admin/crm/events"
-                className="text-xs text-ink-tertiary hover:text-accent"
-              >
+              <Link href="/admin/crm/events" className="text-xs text-ink-tertiary">
                 Open full feed →
               </Link>
             </div>

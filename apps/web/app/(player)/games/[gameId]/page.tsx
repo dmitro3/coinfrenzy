@@ -118,14 +118,19 @@ export default async function GameLaunchPage({
     )
   }
 
-  // Immersive game-play layout — the shell hides its sidebar/footer/
-  // ticker for `/games/{id}` so the iframe gets the full viewport
-  // between the top bar and our own GameImmersiveFooter. Mirrors the
-  // live coinfrenzy.com structure; ships ready for Alea sandbox
-  // (or any provider) to drop into `playUrl` without further layout
-  // changes.
+  // Game-play layout — for /casino-games/{id} the normal sidebar shell
+  // is active, so the flex-1 approach relies on an unbounded scrolling
+  // parent and collapses. Instead, anchor the container to the viewport
+  // with an explicit dvh height minus the sticky topbar (90px).
+  // GameImmersiveFooter is shrink-0 so the iframe fills the remainder.
+  // id="cf-game-viewport" lets the footer's fullscreen button target
+  // just this container (not the whole document with sidebar/topbar).
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col bg-black">
+    <div
+      id="cf-game-viewport"
+      className="flex w-full flex-col bg-black"
+      style={{ height: 'calc(100dvh - 90px)' }}
+    >
       <GameFrame src={launch.value.playUrl} title={game.displayName} />
       <GameImmersiveFooter
         gameId={game.id}

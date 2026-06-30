@@ -4,9 +4,12 @@ import { ScrollText } from 'lucide-react'
 import { EmptyState, StatusPill, type StatusPillTone } from '@coinfrenzy/ui/admin'
 import { ListPageShell } from '@coinfrenzy/ui/admin/layout/ListPageShell'
 import { EventsFeed } from '@coinfrenzy/ui/admin/crm'
+import { Button } from '@coinfrenzy/ui/primitives/button'
 import { Card, CardContent } from '@coinfrenzy/ui/primitives/card'
+import { Input } from '@coinfrenzy/ui/primitives/input'
 
 import { fetchMessageLogInsights, listMessageLogForAdmin } from '../_data'
+import { MessageLogViewTabs } from './_view-tabs'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -78,28 +81,7 @@ export default async function Page({ searchParams }: PageProps) {
         },
       ]}
     >
-      <div className="mb-3 flex items-center gap-2 text-xs">
-        <Link
-          href={`/admin/crm/message-log${sp.playerId || sp.campaignId ? `?${new URLSearchParams({ ...(sp.playerId ? { playerId: sp.playerId } : {}), ...(sp.campaignId ? { campaignId: sp.campaignId } : {}) }).toString()}` : ''}`}
-          className={`rounded-md border px-3 py-1 ${
-            view === 'table'
-              ? 'border-accent bg-accent/10 text-accent'
-              : 'border-line-subtle text-ink-secondary hover:border-accent/40'
-          }`}
-        >
-          Table
-        </Link>
-        <Link
-          href={`/admin/crm/message-log?view=feed${sp.playerId ? `&playerId=${sp.playerId}` : ''}${sp.campaignId ? `&campaignId=${sp.campaignId}` : ''}`}
-          className={`rounded-md border px-3 py-1 ${
-            view === 'feed'
-              ? 'border-accent bg-accent/10 text-accent'
-              : 'border-line-subtle text-ink-secondary hover:border-accent/40'
-          }`}
-        >
-          Live feed
-        </Link>
-      </div>
+      <MessageLogViewTabs view={view} playerId={sp.playerId} campaignId={sp.campaignId} />
 
       {view === 'feed' ? (
         <Card>
@@ -109,32 +91,29 @@ export default async function Page({ searchParams }: PageProps) {
         <>
           <form
             method="get"
-            className="flex flex-wrap items-end gap-2 rounded-md border border-line-subtle bg-surface p-3"
+            className="flex flex-wrap items-end gap-3 rounded-lg border border-line-subtle bg-surface px-4 py-3"
           >
-            <label className="space-y-1 text-xs">
-              <div className="text-ink-tertiary">Player ID</div>
-              <input
+            <label className="flex flex-col gap-1 text-xs">
+              <span className="text-ink-tertiary">Player ID</span>
+              <Input
                 name="playerId"
                 defaultValue={sp.playerId ?? ''}
                 placeholder="UUID"
-                className="h-9 w-[280px] rounded-md border border-line-subtle bg-bg px-2 font-mono text-xs text-ink-primary"
+                className="h-9 w-[280px] font-mono text-xs"
               />
             </label>
-            <label className="space-y-1 text-xs">
-              <div className="text-ink-tertiary">Campaign ID</div>
-              <input
+            <label className="flex flex-col gap-1 text-xs">
+              <span className="text-ink-tertiary">Campaign ID</span>
+              <Input
                 name="campaignId"
                 defaultValue={sp.campaignId ?? ''}
                 placeholder="UUID"
-                className="h-9 w-[280px] rounded-md border border-line-subtle bg-bg px-2 font-mono text-xs text-ink-primary"
+                className="h-9 w-[280px] font-mono text-xs"
               />
             </label>
-            <button
-              type="submit"
-              className="h-9 rounded-md bg-accent px-4 text-sm font-medium text-accent-foreground hover:bg-accent/90"
-            >
+            <Button type="submit" size="sm" className="h-9">
               Filter
-            </button>
+            </Button>
           </form>
 
           <Card>

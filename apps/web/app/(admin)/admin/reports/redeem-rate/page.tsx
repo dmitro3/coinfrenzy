@@ -7,7 +7,6 @@ import { ListPageShell } from '@coinfrenzy/ui/admin/layout/ListPageShell'
 import {
   defaultLast30Days,
   formatHumanRange,
-  formatMoney,
   formatUsdCompact,
   parseDateRange,
 } from '../_shared.client'
@@ -113,7 +112,7 @@ export default async function RedeemRatePage({ searchParams }: PageProps) {
         fallbackTo={fallback.to}
         exportHref="/api/admin/reports/redeem-rate/export"
       />
-      <RedeemRateTable rows={data} formatMoney={formatMoney} />
+      <RedeemRateTable rows={data} />
     </ListPageShell>
   )
 }

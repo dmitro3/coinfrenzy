@@ -8,6 +8,7 @@ import { Input } from '@coinfrenzy/ui/primitives/input'
 import { Label } from '@coinfrenzy/ui/primitives/label'
 
 import { formatCoins } from '@/lib/format'
+import { GoldButton } from '@coinfrenzy/ui/player'
 
 // docs/09 §7 — deposit limits, session limits, self-exclusion.
 //
@@ -400,32 +401,35 @@ function SelfExclusion({
 
       <div className="pt-2">
         {!confirming ? (
-          <button
+          <GoldButton
             type="button"
+            variant="gold-horizontal"
             onClick={() => setConfirming(true)}
             className="cf-gold-gradient inline-flex h-10 items-center justify-center rounded-md px-5 text-sm font-extrabold uppercase tracking-[0.16em] text-[#1a1300] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_22px_-8px_rgba(245,208,102,0.55)]"
           >
             Self Exclude
-          </button>
+          </GoldButton>
         ) : (
           <div className="flex flex-wrap items-center gap-2">
-            <button
+            <GoldButton
               type="button"
+              variant="gold-horizontal"
               onClick={commit}
               disabled={busy}
               className="inline-flex h-10 items-center justify-center rounded-md bg-[var(--cf-red-primary)] px-5 text-sm font-extrabold uppercase tracking-[0.16em] text-white transition-all duration-200 hover:bg-[var(--cf-red-bright)] disabled:opacity-50"
             >
               {busy
-                ? '…'
+                ? '...'
                 : `Confirm: ${SELF_EXCLUDE_PERIODS.find((p) => p.id === duration)?.label ?? duration}`}
-            </button>
-            <button
+            </GoldButton>
+            <GoldButton
               type="button"
+              variant="gold-horizontal"
               onClick={() => setConfirming(false)}
-              className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--cf-border-default)] bg-[var(--cf-bg-elevated)] px-5 text-sm font-semibold text-white transition-colors hover:border-[var(--cf-gold-medium)]"
+              className="cf-gold-gradient inline-flex h-10 items-center justify-center rounded-md border border-[var(--cf-border-default)] bg-[var(--cf-bg-elevated)] px-5 text-sm font-semibold text-white transition-colors hover:border-[var(--cf-gold-medium)]"
             >
               Cancel
-            </button>
+            </GoldButton>
           </div>
         )}
       </div>

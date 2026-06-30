@@ -101,13 +101,13 @@ export const ADMIN_NAV: NavNode[] = [
     children: [
       {
         kind: 'leaf',
-        label: 'Providers',
+        label: 'Provider Dashboard',
         href: '/admin/casino/providers',
         roles: ALL,
       },
       {
         kind: 'leaf',
-        label: 'Games',
+        label: 'Game Dashboard',
         href: '/admin/casino/games',
         roles: ALL,
       },

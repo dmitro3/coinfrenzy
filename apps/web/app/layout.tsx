@@ -1,12 +1,11 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { Inter, Montserrat, Cinzel } from 'next/font/google'
+import { Inter, Montserrat, Cinzel, Playfair_Display } from 'next/font/google'
 
 import './globals.css'
 
-// Inter — typeface for the admin platform (M1-M4). Loaded with the
-// `cv11`, `ss01`, `ss03` feature set in globals.css for the Linear-style
-// number/punctuation tweaks.
+// Inter — admin platform (M1–M4). Loaded with the `cv11`, `ss01`, `ss03`
+// feature set on `.admin-surface` for Linear-style number/punctuation tweaks.
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
@@ -32,6 +31,15 @@ const cinzel = Cinzel({
   variable: '--font-cinzel',
 })
 
+// Playfair Display — serif display face used on the live site for
+// decorative headlines and `.font-serif` utility classes.
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  display: 'swap',
+  variable: '--font-playfair',
+})
+
 export const metadata: Metadata = {
   title: "Coin Frenzy — Play free. Win real. That's the Frenzy.",
   description:
@@ -46,7 +54,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${montserrat.variable} ${cinzel.variable}`}
+      className={`${inter.variable} ${montserrat.variable} ${cinzel.variable} ${playfair.variable}`}
     >
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         {children}

@@ -148,8 +148,35 @@ const preset: Config = {
       },
 
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
+        // Live-site parity: Montserrat is the default sans; Inter is opt-in
+        // via `font-inter` (admin). Serif maps to Playfair Display.
+        sans: [
+          'var(--font-sans)',
+          'Montserrat',
+          'ui-sans-serif',
+          'system-ui',
+          '-apple-system',
+          'Segoe UI',
+          'sans-serif',
+        ],
+        serif: ['var(--font-serif)', 'Playfair Display', 'Georgia', 'Times New Roman', 'serif'],
+        mono: [
+          'var(--font-mono)',
+          'ui-monospace',
+          'SFMono-Regular',
+          'Menlo',
+          'Consolas',
+          'monospace',
+        ],
+        inter: ['var(--font-inter)', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        montserrat: ['var(--font-montserrat)', 'Montserrat', 'sans-serif'],
+        headline: [
+          'var(--font-cinzel)',
+          'Cinzel',
+          'Playfair Display',
+          'Cormorant Garamond',
+          'serif',
+        ],
       },
 
       // Precise type scale per design spec — line-heights baked in.

@@ -55,7 +55,10 @@ export function GameImmersiveFooter({
       if (document.fullscreenElement) {
         await document.exitFullscreen()
       } else {
-        await document.documentElement.requestFullscreen()
+        // Target only the game container — not the whole document — so the
+        // sidebar and topbar stay hidden behind the fullscreen layer.
+        const el = document.getElementById('cf-game-viewport') ?? document.documentElement
+        await el.requestFullscreen()
       }
     } catch {
       toast.info('Your browser blocked the fullscreen request — try the F11 key instead.', {

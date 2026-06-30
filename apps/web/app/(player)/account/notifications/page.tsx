@@ -29,7 +29,7 @@ export default async function NotificationsPage() {
         <h2 className="cf-headline mb-3 text-lg font-bold uppercase tracking-wider text-white">
           Preferences
         </h2>
-        <div className="cf-account-card max-w-3xl p-6">
+        <div className="cf-account-card max-w-full p-6">
           <PreferencesForm />
         </div>
 

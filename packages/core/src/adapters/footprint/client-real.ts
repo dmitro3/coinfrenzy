@@ -26,7 +26,7 @@ export class RealFootprintClient implements FootprintClient {
       const e = env()
       if (!e.FOOTPRINT_PLAYBOOK_ID) throw err('FOOTPRINT_PLAYBOOK_ID is not set')
 
-      const body = {
+      const body: Record<string, unknown> = {
         kind: 'onboard',
         key: e.FOOTPRINT_PLAYBOOK_ID,
         bootstrap_data: {
@@ -41,6 +41,7 @@ export class RealFootprintClient implements FootprintClient {
             : undefined),
         },
         user_external_id: input.playerId,
+        ...(input.returnUrl ? { redirect_url: input.returnUrl } : undefined),
       }
       const json = await this.request<{
         token: string

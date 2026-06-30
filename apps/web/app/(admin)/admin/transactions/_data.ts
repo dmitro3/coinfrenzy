@@ -833,10 +833,10 @@ export async function fetchCasinoActivityInsights(
     .select({
       betEvents: sql<string>`COUNT(*) FILTER (WHERE ${schema.ledgerEntries.source} = 'bet')::text`,
       winEvents: sql<string>`COUNT(*) FILTER (WHERE ${schema.ledgerEntries.source} = 'win')::text`,
-      scWagered: sql<string>`COALESCE(SUM(${schema.ledgerEntries.amount}) FILTER (WHERE ${schema.ledgerEntries.source} = 'bet' AND ${schema.ledgerEntries.currency} = 'SC'), 0)::text`,
-      scWon: sql<string>`COALESCE(SUM(${schema.ledgerEntries.amount}) FILTER (WHERE ${schema.ledgerEntries.source} = 'win' AND ${schema.ledgerEntries.currency} = 'SC'), 0)::text`,
-      gcWagered: sql<string>`COALESCE(SUM(${schema.ledgerEntries.amount}) FILTER (WHERE ${schema.ledgerEntries.source} = 'bet' AND ${schema.ledgerEntries.currency} = 'GC'), 0)::text`,
-      gcWon: sql<string>`COALESCE(SUM(${schema.ledgerEntries.amount}) FILTER (WHERE ${schema.ledgerEntries.source} = 'win' AND ${schema.ledgerEntries.currency} = 'GC'), 0)::text`,
+      scWagered: sql<string>`COALESCE(SUM(${schema.ledgerEntries.amount}) FILTER (WHERE ${schema.ledgerEntries.source} = 'bet' AND ${schema.ledgerEntries.currency} = 'SC'), 0)::bigint::text`,
+      scWon: sql<string>`COALESCE(SUM(${schema.ledgerEntries.amount}) FILTER (WHERE ${schema.ledgerEntries.source} = 'win' AND ${schema.ledgerEntries.currency} = 'SC'), 0)::bigint::text`,
+      gcWagered: sql<string>`COALESCE(SUM(${schema.ledgerEntries.amount}) FILTER (WHERE ${schema.ledgerEntries.source} = 'bet' AND ${schema.ledgerEntries.currency} = 'GC'), 0)::bigint::text`,
+      gcWon: sql<string>`COALESCE(SUM(${schema.ledgerEntries.amount}) FILTER (WHERE ${schema.ledgerEntries.source} = 'win' AND ${schema.ledgerEntries.currency} = 'GC'), 0)::bigint::text`,
       uniquePlayers: sql<string>`COUNT(DISTINCT ${schema.ledgerEntries.playerId})::text`,
     })
     .from(schema.ledgerEntries)

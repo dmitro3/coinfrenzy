@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Eye, EyeOff, Lock } from 'lucide-react'
 
 import { cn } from '@coinfrenzy/ui/lib/utils'
-import { useToast } from '@coinfrenzy/ui/player'
+import { GoldButton, useToast } from '@coinfrenzy/ui/player'
 
 // Reset Your Password form — matches the live coinfrenzy.com /settings
 // Password tab. Three password fields (Old / New / Confirm) each with
@@ -115,8 +115,9 @@ export function PasswordForm() {
         </p>
       )}
 
-      <button
+      <GoldButton
         type="submit"
+        variant="gold-horizontal"
         disabled={!canSubmit}
         className={cn(
           'cf-gold-gradient relative inline-flex h-10 items-center justify-center rounded-md px-6',
@@ -128,7 +129,7 @@ export function PasswordForm() {
         )}
       >
         {state.status === 'submitting' ? 'Updating…' : 'Update'}
-      </button>
+      </GoldButton>
     </form>
   )
 }

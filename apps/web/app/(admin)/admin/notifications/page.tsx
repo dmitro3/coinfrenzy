@@ -10,7 +10,7 @@ import { ListPageShell } from '@coinfrenzy/ui/admin/layout/ListPageShell'
 
 import { requireAdminSession } from '@/lib/admin-session'
 
-import { NotificationsClient } from './_client'
+import { ComposeTrigger, Inbox } from './_client'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -85,7 +85,7 @@ export default async function Page({ searchParams }: PageProps) {
       description="In-app push to a single player or every active player. Each send is audited."
       breadcrumb={[{ label: 'Admin', href: '/admin' }, { label: 'Notification Center' }]}
       renderLink={({ href, children }) => <Link href={href}>{children}</Link>}
-      actions={<NotificationsClient.ComposeTrigger canCompose={canCompose} />}
+      actions={<ComposeTrigger canCompose={canCompose} />}
       insights={[
         { label: 'Sent today', value: (agg?.sent_today ?? 0).toLocaleString(), tone: 'neutral' },
         {
@@ -150,7 +150,7 @@ export default async function Page({ searchParams }: PageProps) {
         </Link>
       </form>
 
-      <NotificationsClient.Inbox rows={initialRows} openIdInitial={sp.open ?? null} />
+      <Inbox rows={initialRows} openIdInitial={sp.open ?? null} />
     </ListPageShell>
   )
 }

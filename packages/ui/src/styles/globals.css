@@ -143,12 +143,18 @@
     --cf-green-deep: #086a3c; /* deep emerald shadow */
     --cf-green-shadow: #052918; /* darkest edge */
 
-    /* Typography */
-    --cf-font-headline:
-      var(--font-cinzel), 'Thunder Demo', 'Cinzel', 'Cormorant Garamond', 'Playfair Display', serif;
-    --cf-font-body:
+    /* Typography — global font stacks (live coinfrenzy.com parity) */
+    --font-sans:
       var(--font-montserrat), 'Montserrat', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
       sans-serif;
+    --font-serif:
+      var(--font-playfair), 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --font-mono:
+      ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
+
+    --cf-font-headline:
+      var(--font-cinzel), 'Thunder Demo', 'Cinzel', 'Cormorant Garamond', 'Playfair Display', serif;
+    --cf-font-body: var(--font-sans);
   }
 
   .dark {
@@ -214,15 +220,14 @@
 
   html {
     color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     background-color: hsl(var(--color-bg-base));
     color: hsl(var(--color-text-primary));
-    /* Linear's exact font tweaks — Inter with these features feels right at small sizes. */
-    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    font-family: var(--font-sans);
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.011em;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -243,6 +248,10 @@
   .admin-surface {
     background-color: hsl(var(--color-bg-base));
     color: hsl(var(--color-text-primary));
+    /* Admin platform keeps Inter — Linear-style small-type tweaks. */
+    font-family: var(--font-inter), 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    letter-spacing: -0.011em;
   }
 
   /* Legacy aliases — kept so existing pages stay intact while the rebuild
@@ -356,6 +365,79 @@
       var(--cf-gold-medium) 50%,
       var(--cf-gold-light) 100%
     );
+  }
+
+  /* Horizontal metallic gold — auth modal Submit buttons on legacy site. */
+  .cf-gold-gradient-horizontal {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #af8331;
+    color: #121212 !important;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: normal;
+    text-transform: none;
+    background: linear-gradient(to right, #c9a227, #e1b144);
+    text-shadow: none;
+    box-shadow: none;
+  }
+  .cf-gold-gradient-horizontal > span {
+    color: #121212 !important;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+  }
+  /* Auth modal form panel sets text-white — keep CTA label dark. */
+  .text-white .cf-gold-gradient-horizontal,
+  .text-white .cf-gold-gradient-horizontal > span,
+  body[data-cf-surface] .cf-gold-gradient-horizontal,
+  body[data-cf-surface] .cf-gold-gradient-horizontal > span {
+    color: #121212 !important;
+  }
+  @media (min-width: 1280px) {
+    .cf-gold-gradient-horizontal {
+      font-size: 1rem;
+    }
+  }
+  .cf-gold-gradient-horizontal::before,
+  .cf-gold-gradient-horizontal::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transition: opacity 300ms ease;
+  }
+  .cf-gold-gradient-horizontal::before {
+    background: linear-gradient(
+      90deg,
+      #6b4f1a 0%,
+      #e1b144 25%,
+      #af8332 50%,
+      #feeb95 75%,
+      #6b4f1a 100%
+    );
+    opacity: 1;
+  }
+  .cf-gold-gradient-horizontal::after {
+    background: linear-gradient(
+      145deg,
+      #6b4f1a 0%,
+      #e1b144 25%,
+      #af8332 50%,
+      #feeb95 75%,
+      #6b4f1a 100%
+    );
+    opacity: 0;
+  }
+  .cf-gold-gradient-horizontal:hover::after {
+    opacity: 1;
+  }
+  .cf-gold-gradient-horizontal:active::after {
+    opacity: 1;
+  }
+  .cf-gold-gradient-horizontal:disabled::before,
+  .cf-gold-gradient-horizontal:disabled::after {
+    opacity: 0.5;
   }
 
   /* Gold gradient text — used on big display headlines per the brand. */
@@ -1416,6 +1498,23 @@
     .cf-toast {
       animation: none;
     }
+    .cf-toast-progress {
+      animation: none;
+      transform: scaleX(0);
+    }
+  }
+
+  @keyframes cf-toast-progress {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+  .cf-toast-progress {
+    transform-origin: left center;
+    animation: cf-toast-progress var(--toast-duration, 4000ms) linear forwards;
   }
 
   /* ─────────────────────────────────────────────────────────────────
@@ -1729,6 +1828,27 @@
     .cf-iframe-skeleton::after {
       animation: none;
     }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Game viewport fullscreen — when the player presses the fullscreen
+     button in GameImmersiveFooter, we call requestFullscreen() on
+     #cf-game-viewport (not document.documentElement) so the sidebar
+     and topbar stay behind the fullscreen layer. The browser expands
+     the element to 100vw × 100vh; we just need to override the inline
+     height constraint and give it a black background.
+     ───────────────────────────────────────────────────────────────── */
+  #cf-game-viewport:fullscreen,
+  #cf-game-viewport:-webkit-full-screen,
+  #cf-game-viewport:-moz-full-screen,
+  #cf-game-viewport:-ms-fullscreen {
+    width: 100%;
+    height: 100% !important;
+    background: #000;
+  }
+
+  #cf-game-viewport::backdrop {
+    background: #000;
   }
 
   /* ─────────────────────────────────────────────────────────────────
@@ -2171,6 +2291,66 @@
     .cf-mobile-nav-shop-ring {
       animation: none;
       opacity: 0.7;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Global spinner — the platform's circular "thinking" indicator.
+     A single gold arc rotates around a faint bronze track ring. Used
+     by the `<Spinner>` primitive (inline busy states) and the global
+     `app/loading.tsx` suspense fallback. Reuses the `--cf-gold-*`
+     tokens so it reads as Coin Frenzy chrome, not a generic spinner.
+
+     Implementation: pure CSS conic-gradient ring — zero SVG <defs>,
+     zero global DOM IDs. Safe to render N times on one page.
+     A radial-gradient mask punches the centre hole so only the ring
+     border remains. CSS-only; honours prefers-reduced-motion.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-spinner {
+    transform: translateZ(0);
+  }
+  .cf-spinner-ring {
+    display: block;
+    border-radius: 50%;
+    /* Fading gold arc: transparent → gold-pale → gold-light → gold-medium →
+       transparent over 270 deg; the remaining 90 deg is transparent (gap). */
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      #fce5a8 60deg,
+      #e6b558 160deg,
+      #c69032 220deg,
+      transparent 270deg,
+      transparent 360deg
+    );
+    /* Radial mask: opaque ring border (outer 15%) + transparent centre. */
+    -webkit-mask: radial-gradient(
+      farthest-side,
+      transparent calc(100% - 2.5px),
+      #000 calc(100% - 2.5px)
+    );
+    mask: radial-gradient(
+      farthest-side,
+      transparent calc(100% - 2.5px),
+      #000 calc(100% - 2.5px)
+    );
+    /* Faint track ring underneath — subtle bronze base circle */
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--cf-gold-bronze) 28%, transparent) inset;
+    transform-origin: 50% 50%;
+    animation: cf-spinner-rotate 900ms linear infinite;
+    will-change: transform;
+  }
+  @keyframes cf-spinner-rotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-spinner-ring {
+      animation: none;
     }
   }
 

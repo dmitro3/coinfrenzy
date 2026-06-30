@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronDown, LogOut, Search, Settings, User, Wallet } from 'lucide-react'
+import { ChevronDown, LogOut, Search, Settings, Wallet } from 'lucide-react'
 
 import { cn } from '../lib/utils'
 import { BalancePill } from './BalancePill'
@@ -336,14 +336,6 @@ function UserMenu({
           <Link
             role="menuitem"
             href="/account"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-white hover:bg-[var(--cf-bg-card-hover)]"
-          >
-            <User className="h-4 w-4 text-[var(--cf-gold-light)]" /> My Account
-          </Link>
-          <Link
-            role="menuitem"
-            href="/account/notifications"
             onClick={() => setOpen(false)}
             className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-white hover:bg-[var(--cf-bg-card-hover)]"
           >

@@ -14,6 +14,16 @@ import { FoxIllustration, type FoxVariant } from './FoxIllustration'
 // in as children), the right panel shows the gold "Coin Frenzy" logo
 // stacked over a hero fox illustration with the dark-red velvet
 // gradient backdrop from the live site.
+//
+// Layout mirrors the legacy coinfrenzy.com modal exactly:
+//   - flex row, max-w-[826px], bg-[#0A0A0A], border-white/10
+//   - left panel:  w-[420px] fixed, px-8 py-7
+//   - 1px gold gradient vertical divider
+//   - right panel: flex-1, image fills full height, logo + close overlaid
+
+// Gold gradient matching --color-active-tab-bg from the live site CSS vars
+const GOLD_GRADIENT =
+  'linear-gradient(90deg,#6b4f1a 0%,#e1b144 25%,#af8332 50%,#feeb95 75%,#6b4f1a 100%)'
 
 interface AuthModalProps {
   children: React.ReactNode
@@ -32,98 +42,148 @@ export function AuthModal({
   className,
 }: AuthModalProps) {
   return (
-    <div className="relative w-full max-w-3xl">
+    <div className="relative w-full max-w-[826px]">
       <div
         className={cn(
-          'relative grid grid-cols-1 overflow-hidden rounded-lg border',
-          'border-[var(--cf-border-default)] bg-[var(--cf-bg-card)] shadow-2xl',
-          'md:grid-cols-[1fr_320px]',
+          // Legacy auth modal is a fixed-height card so the fox hero
+          // panel always shows the full mascot — not just the head.
+          'relative flex w-full overflow-hidden rounded-xl border border-white/10 bg-[#0A0A0A] md:min-h-[580px]',
           className,
         )}
       >
-        {/* Close button */}
-        {onClose ? (
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="absolute right-3 top-3 z-20 grid h-8 w-8 place-items-center rounded-md text-[var(--cf-gray-light)] hover:bg-[var(--cf-bg-card-hover)] hover:text-white"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        ) : (
-          <Link
-            href={closeHref}
-            aria-label="Close"
-            className="absolute right-3 top-3 z-20 grid h-8 w-8 place-items-center rounded-md text-[var(--cf-gray-light)] hover:bg-[var(--cf-bg-card-hover)] hover:text-white"
-          >
-            <X className="h-4 w-4" />
-          </Link>
-        )}
+        {/* ── Left: form panel — fixed 420px on desktop ─────────── */}
+        <div className="flex w-full min-w-0 flex-col overflow-visible px-8 py-7 text-white md:w-[420px]">
+          {children}
+        </div>
 
-        {/* Form panel */}
-        <div className="px-6 py-8 sm:px-8 sm:py-10">{children}</div>
+        {/* ── Vertical gold-to-transparent divider ──────────────── */}
+        <div className="hidden w-px bg-gradient-to-b from-[#E1B144] to-transparent opacity-60 md:block" />
 
-        {/* Brand / fox panel */}
-        <aside
-          aria-hidden="true"
-          className={cn(
-            'relative hidden overflow-hidden md:block',
-            'bg-[radial-gradient(ellipse_at_top,#2a0508_0%,#0a0204_60%,#000_100%)]',
-          )}
-        >
-          <div className="absolute inset-0 flex flex-col items-center pt-6">
-            <CoinFrenzyLogo variant="wordmark" width={140} height={56} />
-          </div>
-          <div className="absolute inset-0 flex items-end justify-center">
-            <FoxIllustration
-              variant={foxVariant}
-              width={360}
-              height={420}
-              className="h-[420px] w-auto max-w-none"
-              priority
-            />
-          </div>
-          {/* Bottom red velvet glow */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[var(--cf-red-deep)]/40 to-transparent"
+        {/* ── Right: brand / fox panel — flex-1 remainder ──────── */}
+        <aside className="relative hidden min-h-[580px] flex-1 overflow-hidden md:block md:rounded-r-xl">
+          {/* Fox image fills the full panel */}
+          <FoxIllustration
+            variant={foxVariant}
+            fill
+            className="object-cover object-top"
+            chromaKey={foxVariant === 'auth-modal' ? false : undefined}
+            priority
           />
+
+          {/* Logo overlaid top-left */}
+          <div className="absolute left-6 top-6">
+            <CoinFrenzyLogo variant="wordmark" width={120} height={48} />
+          </div>
+
+          {/* Close button lives inside the image panel */}
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute right-5 top-5 z-20 text-white transition-opacity hover:opacity-70"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          ) : (
+            <Link
+              href={closeHref}
+              aria-label="Close"
+              className="absolute right-5 top-5 z-20 text-white transition-opacity hover:opacity-70"
+            >
+              <X className="h-5 w-5" />
+            </Link>
+          )}
         </aside>
       </div>
     </div>
   )
 }
 
-// Convenience header used inside the form panel to render the
-// Login / Create Account tab toggle.
+// ─── AuthTabs ─────────────────────────────────────────────────────────────────
+// Gradient-border technique from the live site:
+//   Active  → 1px wrapper with gold linear-gradient bg, inner button #1e1a0e
+//   Inactive → 1px wrapper with white/10 bg,            inner button #22221d
+// ─────────────────────────────────────────────────────────────────────────────
+
 interface AuthTabsProps {
   active: 'login' | 'signup'
+  /** When provided, renders callback-driven buttons instead of navigation Links (modal mode). */
+  onLogin?: () => void
+  /** When provided, renders callback-driven buttons instead of navigation Links (modal mode). */
+  onSignup?: () => void
 }
 
-export function AuthTabs({ active }: AuthTabsProps) {
+export function AuthTabs({ active, onLogin, onSignup }: AuthTabsProps) {
+  const useCallbacks = Boolean(onLogin || onSignup)
+
   return (
-    <div className="mb-6 inline-flex rounded-md bg-[var(--cf-bg-elevated)] p-1 text-sm font-semibold">
-      <Link
-        href="/login"
-        className={cn(
-          'rounded-sm px-4 py-1.5 transition-colors',
-          active === 'login' ? 'cf-gold-gradient text-[#1a1a1a]' : 'text-white/80 hover:text-white',
-        )}
+    <div className="mb-6 mt-1 flex gap-3">
+      {/* Login tab */}
+      <div
+        className="rounded-md p-[1px] transition-all"
+        style={{ background: active === 'login' ? GOLD_GRADIENT : 'rgba(255,255,255,0.1)' }}
       >
-        Login
-      </Link>
-      <Link
-        href="/signup"
-        className={cn(
-          'rounded-sm px-4 py-1.5 transition-colors',
-          active === 'signup'
-            ? 'cf-gold-gradient text-[#1a1a1a]'
-            : 'text-white/80 hover:text-white',
+        {useCallbacks ? (
+          <button
+            type="button"
+            onClick={onLogin}
+            className={cn(
+              'flex h-[34px] items-center rounded-md px-6 text-sm font-semibold transition-colors',
+              active === 'login'
+                ? 'bg-[#1e1a0e] text-white'
+                : 'bg-[#22221d] text-white/60 hover:text-white',
+            )}
+          >
+            Login
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className={cn(
+              'flex h-[34px] items-center rounded-md px-6 text-sm font-semibold transition-colors',
+              active === 'login'
+                ? 'bg-[#1e1a0e] text-white'
+                : 'bg-[#22221d] text-white/60 hover:text-white',
+            )}
+          >
+            Login
+          </Link>
         )}
+      </div>
+
+      {/* Create Account tab */}
+      <div
+        className="rounded-md p-[1px] transition-all"
+        style={{ background: active === 'signup' ? GOLD_GRADIENT : 'rgba(255,255,255,0.1)' }}
       >
-        Create Account
-      </Link>
+        {useCallbacks ? (
+          <button
+            type="button"
+            onClick={onSignup}
+            className={cn(
+              'flex h-[34px] items-center whitespace-nowrap rounded-md px-6 text-sm font-semibold transition-colors',
+              active === 'signup'
+                ? 'bg-[#1e1a0e] text-white'
+                : 'bg-[#22221d] text-white/60 hover:text-white',
+            )}
+          >
+            Create Account
+          </button>
+        ) : (
+          <Link
+            href="/signup"
+            className={cn(
+              'flex h-[34px] items-center whitespace-nowrap rounded-md px-6 text-sm font-semibold transition-colors',
+              active === 'signup'
+                ? 'bg-[#1e1a0e] text-white'
+                : 'bg-[#22221d] text-white/60 hover:text-white',
+            )}
+          >
+            Create Account
+          </Link>
+        )}
+      </div>
     </div>
   )
 }

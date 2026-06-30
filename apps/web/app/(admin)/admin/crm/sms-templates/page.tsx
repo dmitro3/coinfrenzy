@@ -82,7 +82,7 @@ export default async function Page({ searchParams }: PageProps) {
             name="search"
             defaultValue={filters.search ?? ''}
             placeholder="slug / name / body…"
-            className="h-9 w-[240px] rounded-md border border-line-subtle bg-bg px-2 text-sm text-ink-primary"
+            className="h-9 w-[240px] rounded-md border border-line-subtle bg-surface px-2 text-sm text-ink-primary"
           />
         </label>
         <label className="space-y-1 text-xs">
@@ -90,7 +90,7 @@ export default async function Page({ searchParams }: PageProps) {
           <select
             name="category"
             defaultValue={filters.category ?? 'all'}
-            className="h-9 rounded-md border border-line-subtle bg-bg px-2 text-sm text-ink-primary"
+            className="h-9 rounded-md border border-line-subtle bg-surface px-2 text-sm text-ink-primary"
           >
             {CATEGORY_OPTIONS.map((c) => (
               <option key={c} value={c}>
@@ -99,12 +99,7 @@ export default async function Page({ searchParams }: PageProps) {
             ))}
           </select>
         </label>
-        <button
-          type="submit"
-          className="h-9 rounded-md bg-accent px-4 text-sm font-medium text-accent-foreground hover:bg-accent/90"
-        >
-          Filter
-        </button>
+
         {hasFilters ? (
           <Link
             href="/admin/crm/sms-templates"

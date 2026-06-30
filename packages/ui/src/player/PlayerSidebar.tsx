@@ -273,6 +273,11 @@ interface PlayerSidebarProps {
   onClose?: () => void
   /** Dock desktop sidebar under the fixed legacy offer marquee. */
   withOfferOffset?: boolean
+  /** Override the default SHOP → modal behaviour (e.g. guest → login). */
+  onShop?: () => void
+  /** Paths that require auth — guests get `onAuthGatedClick` instead of navigation. */
+  authGatedHrefs?: readonly string[]
+  onAuthGatedClick?: (href: string) => void
 }
 
 export function PlayerSidebar({
@@ -280,6 +285,9 @@ export function PlayerSidebar({
   mobileOpen,
   onClose,
   withOfferOffset,
+  onShop,
+  authGatedHrefs,
+  onAuthGatedClick,
 }: PlayerSidebarProps) {
   return (
     <>
@@ -326,13 +334,39 @@ export function PlayerSidebar({
           </div>
 
           <nav className="flex-1 space-y-4 overflow-y-auto pt-4 text-base [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            <NavGroup items={GROUP_TOP} pathname={pathname} onClose={onClose} />
+            <NavGroup
+              items={GROUP_TOP}
+              pathname={pathname}
+              onClose={onClose}
+              authGatedHrefs={authGatedHrefs}
+              onAuthGatedClick={onAuthGatedClick}
+            />
             <Divider />
-            <NavGroup items={GROUP_CATEGORIES} pathname={pathname} onClose={onClose} />
+            <NavGroup
+              items={GROUP_CATEGORIES}
+              pathname={pathname}
+              onClose={onClose}
+              authGatedHrefs={authGatedHrefs}
+              onAuthGatedClick={onAuthGatedClick}
+            />
             <Divider />
-            <NavGroup items={GROUP_SHOP} pathname={pathname} onClose={onClose} emphasis="shop" />
+            <NavGroup
+              items={GROUP_SHOP}
+              pathname={pathname}
+              onClose={onClose}
+              emphasis="shop"
+              onShop={onShop}
+              authGatedHrefs={authGatedHrefs}
+              onAuthGatedClick={onAuthGatedClick}
+            />
             <Divider />
-            <NavGroup items={GROUP_BOTTOM} pathname={pathname} onClose={onClose} />
+            <NavGroup
+              items={GROUP_BOTTOM}
+              pathname={pathname}
+              onClose={onClose}
+              authGatedHrefs={authGatedHrefs}
+              onAuthGatedClick={onAuthGatedClick}
+            />
           </nav>
         </div>
       </aside>
@@ -349,11 +383,17 @@ function NavGroup({
   pathname,
   onClose,
   emphasis,
+  onShop,
+  authGatedHrefs,
+  onAuthGatedClick,
 }: {
   items: SidebarItem[]
   pathname: string
   onClose?: () => void
   emphasis?: 'shop'
+  onShop?: () => void
+  authGatedHrefs?: readonly string[]
+  onAuthGatedClick?: (href: string) => void
 }) {
   const { openShop } = useShopModal()
   const searchParams = useSearchParams()
@@ -385,8 +425,8 @@ function NavGroup({
           'transition-all duration-150',
           active
             ? 'cf-nav-active'
-            : 'text-white hover:bg-[linear-gradient(90deg,#6b4f1a_0%,#e1b144_25%,#af8332_50%,#feeb95_75%,#6b4f1a_100%)] hover:text-[#121212]',
-          isShop && !active && 'group/shop-pile text-[var(--cf-gold-light)] hover:text-[#121212]',
+            : 'text-white hover:bg-[linear-gradient(90deg,#6b4f1a_0%,#e1b144_25%,#af8332_50%,#feeb95_75%,#6b4f1a_100%)] hover:text-white',
+          isShop && !active && 'group/shop-pile text-[var(--cf-gold-light)] hover:text-white',
         )
         const inner = (
           <>
@@ -418,7 +458,28 @@ function NavGroup({
               <button
                 type="button"
                 onClick={() => {
-                  openShop('buy')
+                  if (onShop) onShop()
+                  else openShop('buy')
+                  onClose?.()
+                }}
+                className={rowClass}
+              >
+                {inner}
+              </button>
+            </li>
+          )
+        }
+
+        // Auth-gated items (e.g. Referrals) open login for guests instead
+        // of navigating to a page that would redirect back.
+        const isAuthGated = authGatedHrefs?.includes(itemPath) && onAuthGatedClick
+        if (isAuthGated) {
+          return (
+            <li key={item.href}>
+              <button
+                type="button"
+                onClick={() => {
+                  onAuthGatedClick(item.href)
                   onClose?.()
                 }}
                 className={rowClass}

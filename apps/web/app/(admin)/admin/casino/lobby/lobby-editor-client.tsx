@@ -6,7 +6,6 @@ import {
   DragOverlay,
   PointerSensor,
   closestCenter,
-  useDroppable,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -15,12 +14,14 @@ import {
 import {
   SortableContext,
   arrayMove,
-  rectSortingStrategy,
+  horizontalListSortingStrategy,
   useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import {
+  ChevronLeft,
+  ChevronRight,
   ExternalLink,
   EyeOff,
   GripVertical,
@@ -87,9 +88,15 @@ export function LobbyEditorClient({ initialSections, availableGames }: Props) {
   const [error, setError] = React.useState<string | null>(null)
   const [savedAt, setSavedAt] = React.useState<number | null>(null)
 
+  // Track the last successfully-saved snapshot so `dirty` resets after save.
+  // Using a ref avoids an extra render cycle; the comparison already happens
+  // inside useMemo which reads sections state.
+  const savedSectionsRef = React.useRef<LobbyEditorSection[]>(initialSections)
+
   const dirty = React.useMemo(
-    () => JSON.stringify(sections) !== JSON.stringify(initialSections),
-    [sections, initialSections],
+    () => JSON.stringify(sections) !== JSON.stringify(savedSectionsRef.current),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sections, savedAt], // savedAt changes when savedSectionsRef is updated
   )
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
@@ -194,6 +201,7 @@ export function LobbyEditorClient({ initialSections, availableGames }: Props) {
         setError(body.error ?? 'save_failed')
         return
       }
+      savedSectionsRef.current = sections
       setSavedAt(Date.now())
     } catch (e) {
       setError(e instanceof Error ? e.message : 'unknown_error')
@@ -323,12 +331,23 @@ function SectionRail({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `section:${section.id}`,
   })
-  const { setNodeRef: setDropRef } = useDroppable({ id: `drop-section:${section.id}` })
+
+  // Ref for the horizontal scroll container so arrow buttons can scroll it
+  const scrollRef = React.useRef<HTMLDivElement>(null)
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+  }
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollRef.current) return
+    const amount = scrollRef.current.clientWidth * 0.75
+    scrollRef.current.scrollBy({
+      left: direction === 'left' ? -amount : amount,
+      behavior: 'smooth',
+    })
   }
 
   return (
@@ -357,13 +376,32 @@ function SectionRail({
             <StatusPill status="custom" color="attention" label={section.status} />
           ) : null}
         </div>
-        <Button size="sm" variant="outline" onClick={onAddGames}>
-          <Plus className="mr-1.5 h-3.5 w-3.5" />
-          Add games
-        </Button>
+        {/* Right side: scroll arrows + add games button */}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => scroll('left')}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line-subtle bg-surface text-ink-secondary hover:bg-surface-hover hover:text-ink-primary disabled:opacity-40"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => scroll('right')}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line-subtle bg-surface text-ink-secondary hover:bg-surface-hover hover:text-ink-primary disabled:opacity-40"
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+          <Button size="sm" variant="outline" onClick={onAddGames} className="ml-1">
+            <Plus className="mr-1.5 h-3.5 w-3.5" />
+            Add games
+          </Button>
+        </div>
       </header>
 
-      <div ref={setDropRef} className="p-3">
+      <div className="p-3">
         {section.games.length === 0 ? (
           <p className="rounded-md border border-dashed border-line-subtle px-4 py-8 text-center text-sm text-ink-tertiary">
             No games in this rail yet. Click <span className="font-medium">Add games</span> above.
@@ -371,9 +409,14 @@ function SectionRail({
         ) : (
           <SortableContext
             items={section.games.map((g) => `game:${section.id}:${g.id}`)}
-            strategy={rectSortingStrategy}
+            strategy={horizontalListSortingStrategy}
           >
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7">
+            {/* Single horizontal scrollable row */}
+            <div
+              ref={scrollRef}
+              className="flex gap-3 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden"
+              style={{ scrollbarWidth: 'none' }}
+            >
               {section.games.map((game) => (
                 <SortableGameTile
                   key={game.id}
@@ -412,8 +455,9 @@ function SortableGameTile({
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className="group relative overflow-hidden rounded-md border border-line-subtle bg-elevated"
+      // Fixed width so tiles render in a single row regardless of count
+      className="group relative flex-none overflow-hidden rounded-md border border-line-subtle bg-elevated"
+      style={{ ...style, width: '148px' }}
     >
       <button
         type="button"

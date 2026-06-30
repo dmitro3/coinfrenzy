@@ -82,12 +82,12 @@ export default async function CrmLandingPage() {
                 className="group flex items-center justify-between rounded-lg border border-line-subtle bg-surface px-4 py-3 transition hover:border-accent/40 hover:bg-surface-hover"
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-surface-elevated text-ink-secondary group-hover:text-accent">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-surface-elevated text-ink-secondary">
                     <Icon className="h-4 w-4" />
                   </span>
                   <span className="text-sm font-medium text-ink-primary">{a.label}</span>
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-ink-tertiary transition group-hover:text-accent" />
+                <ArrowUpRight className="h-4 w-4 text-ink-tertiary transition" />
               </Link>
             )
           })}
@@ -98,7 +98,7 @@ export default async function CrmLandingPage() {
           <Card>
             <div className="flex items-center justify-between border-b border-line-subtle px-4 py-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-accent" />
+                <Sparkles className="h-4 w-4" />
                 <h3 className="text-sm font-semibold text-ink-primary">Live activity</h3>
               </div>
               <Link
@@ -115,7 +115,7 @@ export default async function CrmLandingPage() {
             <CardContent className="p-0">
               <div className="flex items-center justify-between border-b border-line-subtle px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <Workflow className="h-4 w-4 text-accent" />
+                  <Workflow className="h-4 w-4" />
                   <h3 className="text-sm font-semibold text-ink-primary">Top campaigns (sent)</h3>
                 </div>
                 <Link

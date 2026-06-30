@@ -14,6 +14,7 @@ export type FoxVariant =
   | 'duo'
   | 'standing'
   | 'tall'
+  | 'auth-modal'
   // The laying-back tuxedo + sunglasses fox from the live coinfrenzy.com
   // empty/404/no-data states. Already a transparent PNG (alpha
   // pre-baked), so `chromaKey` should be false when rendering it.
@@ -22,6 +23,7 @@ export type FoxVariant =
 const SRC: Record<FoxVariant, string> = {
   'coins-half': '/brand/fox/fox-coins-half.jpg',
   'coins-full': '/brand/fox/fox-coins-full.jpg',
+  'auth-modal': '/brand/fox/auth-img.webp',
   duo: '/brand/fox/fox-duo.jpg',
   standing: '/brand/fox/fox-standing.jpg',
   tall: '/brand/fox/fox-tall.jpg',
@@ -37,6 +39,8 @@ interface FoxIllustrationProps {
   /** Apply the SVG chroma-key filter to knock out the green background. */
   chromaKey?: boolean
   alt?: string
+  /** Use Next.js fill mode — parent must be position:relative with defined dimensions. */
+  fill?: boolean
 }
 
 export function FoxIllustration({
@@ -47,7 +51,23 @@ export function FoxIllustration({
   priority,
   chromaKey = true,
   alt = 'Coin Frenzy fox mascot',
+  fill = false,
 }: FoxIllustrationProps) {
+  const baseClass = cn(chromaKey && 'cf-chroma-key', 'select-none', className)
+
+  if (fill) {
+    return (
+      <Image
+        src={SRC[variant]}
+        alt={alt}
+        fill
+        priority={priority}
+        className={baseClass}
+        unoptimized
+      />
+    )
+  }
+
   return (
     <Image
       src={SRC[variant]}
@@ -55,7 +75,7 @@ export function FoxIllustration({
       width={width}
       height={height}
       priority={priority}
-      className={cn(chromaKey && 'cf-chroma-key', 'select-none', className)}
+      className={baseClass}
       unoptimized
     />
   )

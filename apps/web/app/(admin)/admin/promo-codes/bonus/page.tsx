@@ -24,7 +24,7 @@ export default async function Page() {
 
   return (
     <ListPageShell
-      title="Promo code → Bonus mapping"
+      title="Bonus mapping"
       subtitle="Which codes trigger which bonus templates"
       description="Cross-reference view. Each promo code is bound to one bonus template; per-code overrides can adjust the playthrough multiplier or window."
       breadcrumb={[

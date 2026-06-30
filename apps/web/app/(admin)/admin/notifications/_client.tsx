@@ -530,7 +530,4 @@ function DD({ children, className }: { children: React.ReactNode; className?: st
   return <dd className={`text-ink-secondary ${className ?? ''}`}>{children}</dd>
 }
 
-export const NotificationsClient = {
-  ComposeTrigger,
-  Inbox,
-}
+export { ComposeTrigger, Inbox }

@@ -11,7 +11,7 @@ import { cn } from '../lib/utils'
 // Sizes map roughly to the screenshot's "Login" / "Sign Up" buttons
 // (md) and the larger "BUY NOW" CTAs on the Shop tiles (lg).
 
-type Variant = 'gold' | 'gold-outline' | 'dark'
+type Variant = 'gold' | 'gold-horizontal' | 'gold-outline' | 'dark'
 type Size = 'sm' | 'md' | 'lg'
 
 interface CommonProps {
@@ -39,6 +39,9 @@ const sizeClasses: Record<Size, string> = {
   lg: 'h-12 px-6 text-base',
 }
 
+const horizontalClasses =
+  'cf-gold-gradient-horizontal h-11 px-4 rounded-lg !text-[#121212] text-base font-bold normal-case tracking-normal'
+
 function baseClass({
   variant = 'gold',
   size = 'md',
@@ -50,14 +53,19 @@ function baseClass({
   fullWidth?: boolean
   className?: string
 }) {
+  const isHorizontal = variant === 'gold-horizontal'
+
   return cn(
-    'inline-flex items-center justify-center gap-2 rounded-md font-semibold tracking-wide uppercase',
+    'inline-flex items-center justify-center gap-2',
+    !isHorizontal && 'font-semibold tracking-wide uppercase',
     'transition-all duration-150 focus-visible:outline-none focus-visible:ring-2',
     'focus-visible:ring-[var(--cf-gold-light)] focus-visible:ring-offset-2',
     'focus-visible:ring-offset-[var(--cf-bg-base)] disabled:opacity-50',
     'disabled:cursor-not-allowed select-none',
-    sizeClasses[size],
+    !isHorizontal && 'rounded-md',
+    !isHorizontal && sizeClasses[size],
     variant === 'gold' && 'cf-gold-gradient text-[#1a1a1a] shadow-md',
+    isHorizontal && horizontalClasses,
     variant === 'gold-outline' &&
       'cf-gold-border bg-[var(--cf-bg-elevated)] text-[var(--cf-gold-light)] hover:bg-[var(--cf-bg-card-hover)]',
     variant === 'dark' &&
@@ -67,14 +75,22 @@ function baseClass({
   )
 }
 
+function wrapContent(variant: Variant | undefined, children: React.ReactNode) {
+  if (variant === 'gold-horizontal') {
+    return <span className="relative z-10 !text-[#121212]">{children}</span>
+  }
+  return children
+}
+
 export function GoldButton(props: ButtonProps | LinkProps) {
   const { variant, size, fullWidth, className, children } = props as CommonProps
   const cls = baseClass({ variant, size, fullWidth, className })
+  const content = wrapContent(variant, children)
 
   if ('href' in props && props.href) {
     return (
       <Link href={props.href} target={props.target} rel={props.rel} className={cls}>
-        {children}
+        {content}
       </Link>
     )
   }
@@ -82,7 +98,7 @@ export function GoldButton(props: ButtonProps | LinkProps) {
   const { variant: _v, size: _s, fullWidth: _f, className: _c, ...rest } = props as ButtonProps
   return (
     <button type={rest.type ?? 'button'} {...rest} className={cls}>
-      {children}
+      {content}
     </button>
   )
 }

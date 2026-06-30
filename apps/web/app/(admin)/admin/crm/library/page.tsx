@@ -118,7 +118,7 @@ export default async function Page() {
                             <div className="min-w-0">
                               <div className="flex items-center gap-2">
                                 <Icon className="h-3.5 w-3.5 text-ink-tertiary" />
-                                <span className="truncate text-sm font-medium text-ink-primary group-hover:text-accent">
+                                <span className="truncate text-sm font-medium text-ink-primary">
                                   {t.display_name}
                                 </span>
                               </div>

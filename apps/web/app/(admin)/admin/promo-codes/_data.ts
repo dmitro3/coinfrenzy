@@ -31,6 +31,8 @@ export interface PromoCodeListRow {
 export interface PromoCodeFilters {
   status?: string
   context?: string
+  /** 'scheduled' | 'live' | 'expired' — derived from validFrom/validUntil timestamps */
+  schedule?: string
   search?: string
 }
 
@@ -42,6 +44,22 @@ export async function fetchPromoCodes(filters: PromoCodeFilters): Promise<PromoC
   }
   if (filters.context && filters.context !== 'all') {
     wheres.push(eq(schema.promoCodes.requiredContext, filters.context))
+  }
+  if (filters.schedule === 'scheduled') {
+    // validFrom is set and in the future
+    wheres.push(
+      sql`${schema.promoCodes.validFrom} is not null and ${schema.promoCodes.validFrom} > now()`,
+    )
+  } else if (filters.schedule === 'live') {
+    // No future validFrom, not yet expired
+    wheres.push(
+      sql`(${schema.promoCodes.validFrom} is null or ${schema.promoCodes.validFrom} <= now()) and (${schema.promoCodes.validUntil} is null or ${schema.promoCodes.validUntil} > now())`,
+    )
+  } else if (filters.schedule === 'expired') {
+    // validUntil set and in the past
+    wheres.push(
+      sql`${schema.promoCodes.validUntil} is not null and ${schema.promoCodes.validUntil} < now()`,
+    )
   }
   if (filters.search) {
     wheres.push(sql`${schema.promoCodes.code} ilike ${`%${filters.search}%`}`)

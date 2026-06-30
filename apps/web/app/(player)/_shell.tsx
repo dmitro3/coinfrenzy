@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 
@@ -23,9 +23,9 @@ import {
   RewardsModalProvider,
   ShopModalProvider,
   ShopModalRoot,
-  SpotlightSearch,
   ToastProvider,
   TopOfferStrip,
+  useKycModal,
   useShopModal,
   useToast,
   type BigWinRevealEvent,
@@ -43,6 +43,8 @@ import { useShopPackages } from '@/lib/use-shop-packages'
 
 import { PlayerRealtimeProvider, useWalletEvents, usePlayerRealtime } from './_realtime'
 import { TermsBanner } from './_terms-banner'
+import { AuthModalProvider, useAuthModal } from '@/features/auth/context/AuthModalContext'
+import { AuthModalRoot, AuthOpenOnQueryParam } from '@/features/auth/AuthModalRoot'
 
 // docs/10 §4.3 + M5 redesign — the player shell renders the Coin Frenzy
 // branded layout: gold-script sidebar, search/balance/SHOP topbar, the
@@ -69,20 +71,24 @@ export function PlayerShell(props: PlayerShellProps) {
   return (
     <PlayerRealtimeProvider playerId={props.playerId} initialWallets={props.wallets}>
       <ToastProvider>
-        <RewardsModalProvider>
-          <KycModalProvider>
-            <ShopModalProvider>
-              <FavoritesHost>
-                <Shell {...props} />
-                <ShopModalHost shopModalData={props.shopModalData} />
-                <KycModalRoot />
-                <ShopOpenOnQueryParam />
-                <PurchaseSuccessToast />
-                <BigWinRevealHost />
-              </FavoritesHost>
-            </ShopModalProvider>
-          </KycModalProvider>
-        </RewardsModalProvider>
+        <AuthModalProvider>
+          <RewardsModalProvider>
+            <KycModalProvider>
+              <ShopModalProvider>
+                <FavoritesHost>
+                  <Shell {...props} />
+                  <ShopModalHost shopModalData={props.shopModalData} />
+                  <KycModalRoot />
+                  <AuthModalRoot />
+                  <AuthOpenOnQueryParam />
+                  <ShopOpenOnQueryParam isGuest={props.isGuest} />
+                  <PurchaseSuccessToast />
+                  <BigWinRevealHost />
+                </FavoritesHost>
+              </ShopModalProvider>
+            </KycModalProvider>
+          </RewardsModalProvider>
+        </AuthModalProvider>
       </ToastProvider>
     </PlayerRealtimeProvider>
   )
@@ -197,25 +203,23 @@ function PurchaseSuccessToast() {
 // Opens the shop modal automatically when navigating with `?shop=1`. Used
 // by the legacy `/shop` route which now redirects to lobby with this
 // query string, and by purchase-cancel redirects from the mock vendor.
-function ShopOpenOnQueryParam() {
+function ShopOpenOnQueryParam({ isGuest }: { isGuest?: boolean }) {
   const { openShop } = useShopModal()
+  const { openLogin } = useAuthModal()
+  const searchParams = useSearchParams()
   React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('shop') === '1') {
-      openShop('buy')
-      // Clean up the URL so refreshes don't keep popping the modal.
-      params.delete('shop')
-      const next = params.toString()
-      const clean = window.location.pathname + (next ? `?${next}` : '')
-      window.history.replaceState({}, '', clean)
-    } else if (params.get('shop') === 'redeem') {
-      openShop('redeem')
-      params.delete('shop')
-      const next = params.toString()
-      const clean = window.location.pathname + (next ? `?${next}` : '')
-      window.history.replaceState({}, '', clean)
-    }
-  }, [openShop])
+    const shop = searchParams.get('shop')
+    if (shop !== '1' && shop !== 'redeem') return
+
+    if (isGuest) openLogin()
+    else openShop(shop === 'redeem' ? 'redeem' : 'buy')
+
+    // Clean up the URL so refreshes don't keep popping the modal.
+    const next = new URLSearchParams(searchParams.toString())
+    next.delete('shop')
+    const qs = next.toString()
+    window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''))
+  }, [searchParams, openShop, openLogin, isGuest])
   return null
 }
 
@@ -224,14 +228,25 @@ function ShopOpenOnQueryParam() {
 // surfaces to keep them quieter.
 const TICKER_ROUTES = ['/lobby', '/casino-games', '/favorites', '/recent-games', '/promotions']
 
-// "Immersive" game-play surface: `/games/{gameId}`. We hide the
-// sidebar, footer, ticker, and chrome banners so the provider iframe
-// (Alea, sandbox, etc.) gets the full viewport between the top bar
-// and the page's own GameImmersiveFooter. Mirrors the live
-// coinfrenzy.com game-play structure the founder shipped.
+// Full immersive mode: only `/games/{gameId}`. Hides sidebar, footer,
+// offer strip, and ticker — the provider iframe fills the entire viewport
+// between the topbar and GameImmersiveFooter.
 function isImmersiveGameRoute(pathname: string): boolean {
   return /^\/games\/[^/]+/.test(pathname)
 }
+
+// Broader "player is in a game" signal that covers both
+// `/games/{gameId}` (immersive) and `/casino-games/{gameId}` (sidebar
+// mode). Used to:
+//   - hide the TopOfferStrip so it doesn't stack above the topbar
+//     during gameplay (the marquee distracts; the game frame needs the
+//     vertical space)
+//   - flip the BalancePill to "Playing" mode in the topbar
+function isGamePlayRoute(pathname: string): boolean {
+  return /^\/(casino-games|games)\/[^/]+/.test(pathname)
+}
+
+const PLAYER_AUTH_GATED_PATHS = ['/referrals'] as const
 
 function Shell({
   displayName,
@@ -243,10 +258,34 @@ function Shell({
   const pathname = usePathname() ?? '/'
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = React.useState(false)
-  const [searchOpen, setSearchOpen] = React.useState(false)
   const immersive = isImmersiveGameRoute(pathname)
-  const showsOfferStrip = !immersive
-  const { openShop } = useShopModal()
+  const inGamePlay = isGamePlayRoute(pathname)
+  const { state: authModalState, openLogin, openSignup } = useAuthModal()
+  const { open: shopModalOpen, openShop } = useShopModal()
+  const { open: kycModalOpen } = useKycModal()
+  const authModalOpen = authModalState !== 'closed'
+  // Guest-only marquee — hidden during gameplay and while any overlay
+  // modal is open so it never stacks above the backdrop.
+  const showsOfferStrip =
+    isGuest && !inGamePlay && !authModalOpen && !shopModalOpen && !kycModalOpen
+
+  const handleOpenSearch = React.useCallback(() => {
+    if (pathname === '/casino-games') {
+      window.dispatchEvent(new CustomEvent('coinfrenzy:focus-casino-search'))
+    }
+    const params = new URLSearchParams(pathname === '/casino-games' ? window.location.search : '')
+    params.set('focus', 'search')
+    router.push(`/casino-games?${params.toString()}`)
+  }, [pathname, router])
+
+  const handleShopClick = React.useCallback(() => {
+    if (isGuest) openLogin()
+    else openShop('buy')
+  }, [isGuest, openLogin, openShop])
+
+  const handleAuthGatedClick = React.useCallback(() => {
+    openLogin()
+  }, [openLogin])
 
   // Close the mobile drawer whenever the route changes (otherwise the
   // drawer stays open after a player taps a sidebar link and the new
@@ -286,14 +325,14 @@ function Shell({
         (event.key === 'k' || event.key === 'K') && (isMac ? event.metaKey : event.ctrlKey)
       if (!hit) return
       event.preventDefault()
-      setSearchOpen((v) => !v)
+      handleOpenSearch()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
+  }, [handleOpenSearch])
 
   const showsTicker =
-    !immersive &&
+    !inGamePlay &&
     TICKER_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`))
 
   // Immersive game routes lock the viewport to one screen — no
@@ -315,6 +354,9 @@ function Shell({
           mobileOpen={mobileOpen}
           onClose={() => setMobileOpen(false)}
           withOfferOffset={showsOfferStrip}
+          onShop={handleShopClick}
+          authGatedHrefs={isGuest ? PLAYER_AUTH_GATED_PATHS : undefined}
+          onAuthGatedClick={isGuest ? handleAuthGatedClick : undefined}
         />
       )}
       <div
@@ -334,19 +376,24 @@ function Shell({
             <TopOfferStrip
               message="ALL NEW PLAYERS GET 30 COINS FOR JUST 10!"
               ctaLabel="Claim Offer"
-              ctaHref="/signup"
+              ctaOnClick={openSignup}
             />
             <div aria-hidden="true" className="h-[45px] shrink-0 md:h-20" />
           </>
         ) : null}
         {isGuest ? (
-          <GuestTopBar onOpenSearch={() => setSearchOpen(true)} withOfferOffset={showsOfferStrip} />
+          <GuestTopBar
+            onOpenSearch={handleOpenSearch}
+            withOfferOffset={showsOfferStrip}
+            onLogin={openLogin}
+            onSignup={openSignup}
+          />
         ) : (
           <ShellTopBar
             displayName={displayName}
             initialCurrency={initialCurrency}
-            inGame={immersive}
-            onOpenSearch={() => setSearchOpen(true)}
+            inGame={inGamePlay}
+            onOpenSearch={handleOpenSearch}
             withOfferOffset={showsOfferStrip}
           />
         )}
@@ -368,12 +415,6 @@ function Shell({
         </main>
         {immersive ? null : <PlayerFooter />}
       </div>
-      <SpotlightSearch
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        onNavigate={(href) => router.push(href)}
-      />
-
       {/* App-shell bottom nav. Hidden on desktop (≥lg) by the
           component itself; hidden in immersive game view so the
           GameImmersiveFooter owns the bottom edge. */}
@@ -381,8 +422,8 @@ function Shell({
         <MobileBottomNav
           pathname={pathname}
           onBrowse={() => setMobileOpen(true)}
-          onShop={() => openShop('buy')}
-          onSearch={() => setSearchOpen(true)}
+          onShop={handleShopClick}
+          onSearch={handleOpenSearch}
         />
       )}
     </div>
@@ -412,7 +453,19 @@ function ShellTopBar({
       setActiveCurrency(next)
       const oneYear = 60 * 60 * 24 * 365
       document.cookie = `active_currency=${next}; path=/; max-age=${oneYear}; samesite=lax`
-      router.refresh()
+
+      // Game pages embed ?currency=GC|SC in the URL. The server component
+      // reads that param first (parseCurrencyParam) and ignores the cookie,
+      // so a plain router.refresh() never actually changes the currency.
+      // When the URL already carries a currency param, update it with
+      // router.replace() so the server re-renders with the new value.
+      const params = new URLSearchParams(window.location.search)
+      if (params.has('currency')) {
+        params.set('currency', next)
+        router.replace(`${window.location.pathname}?${params.toString()}`)
+      } else {
+        router.refresh()
+      }
     },
     [activeCurrency, router],
   )
@@ -471,9 +524,13 @@ function ShellWinsTicker() {
 function GuestTopBar({
   onOpenSearch,
   withOfferOffset,
+  onLogin,
+  onSignup,
 }: {
   onOpenSearch: () => void
   withOfferOffset?: boolean
+  onLogin?: () => void
+  onSignup?: () => void
 }) {
   return (
     <header
@@ -505,8 +562,9 @@ function GuestTopBar({
         </button>
 
         <div className="flex flex-1 items-center justify-end gap-3">
-          <Link
-            href="/login"
+          <button
+            type="button"
+            onClick={onLogin}
             className={cn(
               'inline-flex h-9 items-center rounded-md px-4 text-sm font-semibold text-white',
               'border border-[var(--cf-border-default)] bg-transparent',
@@ -514,9 +572,10 @@ function GuestTopBar({
             )}
           >
             Login
-          </Link>
-          <Link
-            href="/signup"
+          </button>
+          <button
+            type="button"
+            onClick={onSignup}
             className={cn(
               'inline-flex h-9 items-center rounded-md px-4 text-sm font-semibold text-white',
               'border border-[var(--cf-gold-medium)] bg-transparent',
@@ -524,7 +583,7 @@ function GuestTopBar({
             )}
           >
             Create Account
-          </Link>
+          </button>
         </div>
       </div>
     </header>

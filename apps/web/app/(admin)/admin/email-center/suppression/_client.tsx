@@ -316,7 +316,4 @@ function RemoveDialog({ target, onClose }: { target: SuppressionRow | null; onCl
   )
 }
 
-export const SuppressionClient = {
-  AddTrigger,
-  Table,
-}
+export { AddTrigger, Table }

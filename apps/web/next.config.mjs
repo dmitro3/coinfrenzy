@@ -30,6 +30,35 @@ const nextConfig = {
     'pusher',
     '@sendgrid/mail',
   ],
+  async rewrites() {
+    return [
+      {
+        source: '/api/v1/auth/sign-up',
+        destination: '/api/player/signup',
+      },
+      {
+        source: '/api/v1/auth/verifyEmail',
+        destination: '/api/player/verify-otp',
+      },
+      {
+        source: '/api/v1/auth/resendVerifyEmail',
+        destination: '/api/player/resend-otp',
+      },
+      {
+        source: '/api/v1/auth/username',
+        destination: '/api/player/username-check',
+        has: [{ type: 'query', key: 'username' }]
+      },
+      {
+        source: '/api/v1/auth/username',
+        destination: '/api/player/username',
+      },
+      {
+        source: '/api/v1/user/profile',
+        destination: '/api/player/profile',
+      },
+    ]
+  },
 }
 
 export default nextConfig

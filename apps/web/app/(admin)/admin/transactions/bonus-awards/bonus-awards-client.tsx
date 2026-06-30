@@ -74,14 +74,24 @@ export function BonusAwardsClient({
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const [isNavigating, startNavigation] = React.useTransition()
   const [search, setSearch] = React.useState('')
+
+  const navigate = React.useCallback(
+    (href: string) => {
+      startNavigation(() => {
+        router.push(href)
+      })
+    },
+    [router],
+  )
 
   const update = (key: string, value: string | null) => {
     const next = new URLSearchParams(searchParams.toString())
     if (value == null || value === '' || value === 'all') next.delete(key)
     else next.set(key, value)
     const qs = next.toString()
-    router.push(qs ? `${pathname}?${qs}` : pathname)
+    navigate(qs ? `${pathname}?${qs}` : pathname)
   }
 
   const filtered = React.useMemo(() => {
@@ -281,7 +291,7 @@ export function BonusAwardsClient({
           initialMax !== ''
             ? () => {
                 setSearch('')
-                router.push(pathname)
+                navigate(pathname)
               }
             : undefined
         }
@@ -293,6 +303,7 @@ export function BonusAwardsClient({
         initialMax={initialMax}
         amountUnit="SC"
         exportHref="/api/admin/transactions/bonus-awards/export"
+        onNavigate={navigate}
       />
       <DataTable
         scope="bonus-awards"
@@ -301,6 +312,7 @@ export function BonusAwardsClient({
         pagination="paginated"
         pageSize={50}
         density="compact"
+        loading={isNavigating}
         hideToolbar
         emptyContent={
           <EmptyState

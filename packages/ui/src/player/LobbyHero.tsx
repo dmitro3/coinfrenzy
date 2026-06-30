@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 
 import { cn } from '../lib/utils'
 
@@ -53,9 +54,13 @@ export function LobbyHero({
   return (
     <section className={cn('relative overflow-hidden rounded-lg bg-black', className)}>
       {href ? (
-        <a href={href} aria-label={alt} className="block">
+        <Link
+          href={href}
+          aria-label={alt}
+          className="block cursor-pointer focus-visible:outline-none"
+        >
           {inner}
-        </a>
+        </Link>
       ) : (
         inner
       )}

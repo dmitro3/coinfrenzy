@@ -21,7 +21,7 @@ import { Label } from '@coinfrenzy/ui/primitives/label'
 import { formatCoins } from '@/lib/format'
 
 /**
- * Manual bonus award — the operator-side equivalent of the on-card
+ * Manual award — the operator-side equivalent of the on-card
  * "Send funds" flow, but built for the "player after player" cadence:
  *   1. Search a player by email / username / UUID.
  *   2. Confirm it's the right person via a compact card.
@@ -121,10 +121,8 @@ export function ManualAwardForm({ templates }: { templates: Template[] }) {
       {/* Step 1 — find a player */}
       <section className="rounded-lg border bg-card">
         <header className="border-b px-5 py-3">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Step 1
-          </p>
-          <h2 className="text-base font-medium">Find a player</h2>
+          <p className="text-xs font-semibold uppercase tracking-wider text-amber-400">Step 1</p>
+          <h2 className="text-base font-medium text-ink-secondary">Find a player</h2>
         </header>
         <div className="p-5">
           {selectedPlayer ? (
@@ -143,14 +141,12 @@ export function ManualAwardForm({ templates }: { templates: Template[] }) {
       >
         <header className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Step 2
-            </p>
-            <h2 className="text-base font-medium">Pick a bonus</h2>
+            <p className="text-xs font-semibold uppercase tracking-wider text-amber-400">Step 2</p>
+            <h2 className="text-base font-medium text-foreground">Pick a bonus</h2>
           </div>
           <CategoryTabs value={categoryFilter} onChange={setCategoryFilter} />
         </header>
-        <div className="p-5">
+        <div className="max-h-[480px] overflow-y-auto p-5">
           {filtered.length === 0 ? (
             <p className="rounded-md border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
               No active bonus templates in this category. Create one in{' '}
@@ -181,10 +177,8 @@ export function ManualAwardForm({ templates }: { templates: Template[] }) {
         }`}
       >
         <header className="border-b px-5 py-3">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Step 3
-          </p>
-          <h2 className="text-base font-medium">Confirm &amp; send</h2>
+          <p className="text-xs font-semibold uppercase tracking-wider text-amber-400">Step 3</p>
+          <h2 className="text-base font-medium text-foreground">Confirm &amp; send</h2>
         </header>
         <div className="space-y-4 p-5">
           <div className="space-y-1">
@@ -335,7 +329,7 @@ function PlayerSearch({ onPick }: { onPick: (p: PlayerHit) => void }) {
 
 function SelectedPlayerCard({ player, onClear }: { player: PlayerHit; onClear: () => void }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-md border bg-muted/20 p-4">
+    <div className="flex items-center justify-between gap-4 rounded-md border border-yellow-500/50 bg-yellow-500/10 p-4">
       <div className="flex min-w-0 items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-foreground">
           <User className="h-5 w-5" />
@@ -426,8 +420,8 @@ function TemplateCard({
       className={
         'flex flex-col items-stretch gap-2 rounded-md border p-4 text-left transition-colors ' +
         (selected
-          ? 'border-foreground bg-foreground/5'
-          : 'border-border hover:border-foreground/40 hover:bg-muted/30')
+          ? 'border-yellow-500/70 bg-yellow-500/10'
+          : 'border-border hover:border-yellow-400/50 hover:bg-yellow-500/5')
       }
     >
       <div className="flex items-start justify-between gap-3">
@@ -435,7 +429,7 @@ function TemplateCard({
           <span
             className={
               'flex h-7 w-7 items-center justify-center rounded-md ' +
-              (selected ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground')
+              (selected ? 'bg-yellow-500/20 text-yellow-400' : 'bg-muted text-muted-foreground')
             }
           >
             <Icon className="h-4 w-4" />
@@ -444,7 +438,7 @@ function TemplateCard({
             {CATEGORY_META[template.category].label}
           </span>
         </div>
-        {selected && <CheckCircle2 className="h-4 w-4 text-foreground" />}
+        {selected && <CheckCircle2 className="h-4 w-4 text-yellow-400" />}
       </div>
       <p className="text-sm font-medium leading-tight">{template.displayName}</p>
       <p className="font-mono text-[10px] text-muted-foreground">{template.slug}</p>

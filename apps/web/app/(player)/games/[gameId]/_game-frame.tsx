@@ -31,7 +31,7 @@ export function GameFrame({ src, title }: GameFrameProps) {
         src={src}
         title={title}
         onLoad={() => setLoaded(true)}
-        className="absolute inset-0 block h-full w-full"
+        className="absolute inset-0 block h-full w-full border-0"
         referrerPolicy="origin"
         style={{
           opacity: loaded ? 1 : 0,

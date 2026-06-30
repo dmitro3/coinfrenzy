@@ -6,6 +6,7 @@ import { getDb, schema } from '@coinfrenzy/db'
 import { requirePlayerSession } from '@/lib/player-session'
 
 import { AccountSubnav } from '../_subnav'
+import { KycPopupHandler } from './_popup-handler'
 import { StartKycButton } from './_start'
 
 export const dynamic = 'force-dynamic'
@@ -51,6 +52,7 @@ export default async function KycPage({ searchParams }: { searchParams: SearchPa
 
   return (
     <div className="mx-auto max-w-4xl py-4">
+      <KycPopupHandler status={params.status} />
       <header className="mb-4">
         <h1 className="cf-headline flex items-center gap-2 text-2xl font-bold uppercase tracking-wider text-white">
           <ShieldCheck className="h-6 w-6 text-[var(--cf-gold-light)]" />

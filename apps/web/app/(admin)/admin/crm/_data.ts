@@ -276,6 +276,35 @@ export async function listSmsTemplatesForAdmin(
   }))
 }
 
+export interface SmsTemplateDetailRow {
+  id: string
+  slug: string
+  displayName: string
+  version: number
+  bodyTemplate: string
+  category: string | null
+}
+
+export async function getSmsTemplateForAdmin(id: string): Promise<SmsTemplateDetailRow | null> {
+  const db = getDb()
+  const rows = await db.execute(sql`
+    SELECT id, slug, display_name, version, body_template, category
+    FROM sms_templates
+    WHERE id = ${id}
+    LIMIT 1
+  `)
+  const row = (rows as unknown as Array<Record<string, unknown>>)[0]
+  if (!row) return null
+  return {
+    id: String(row.id),
+    slug: String(row.slug),
+    displayName: String(row.display_name),
+    version: Number(row.version ?? 1),
+    bodyTemplate: String(row.body_template),
+    category: (row.category as string | null) ?? null,
+  }
+}
+
 export interface MessageLogRow {
   id: string
   playerId: string

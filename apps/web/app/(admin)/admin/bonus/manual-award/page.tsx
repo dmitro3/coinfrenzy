@@ -88,7 +88,7 @@ export default async function Page() {
 
   return (
     <ListPageShell
-      title="Manual bonus award"
+      title="Manual award"
       subtitle="Send a bonus to one player at a time"
       description="Find the player, pick a bonus, ship it. Each award is audit-logged and idempotent on the (admin, player, template, timestamp) tuple."
       breadcrumb={[

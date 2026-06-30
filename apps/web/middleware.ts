@@ -27,7 +27,7 @@ const HOST_ALLOWED_API_PREFIXES = ['/api/admin/auth/', '/api/admin/host/'] as co
 // `auth.api.getSession`.
 const BETTER_AUTH_COOKIES = ['better-auth.session_token', '__Secure-better-auth.session_token']
 
-const PLAYER_GATED_PATHS = ['/account', '/cashier', '/bonuses', '/promotions', '/vip']
+const PLAYER_GATED_PATHS = ['/account', '/cashier', '/bonuses', '/promotions', '/vip', '/referrals']
 const PLAYER_GATED_PREFIXES = ['/games/']
 
 function hasBetterAuthCookie(request: NextRequest): boolean {
@@ -159,13 +159,7 @@ export async function middleware(request: NextRequest) {
   // Admin container: redirect / (and /login, /signup) to /admin so
   // operators hitting the container root land on the admin panel.
   if (process.env.APP_SURFACE === 'admin') {
-    if (
-      pathname === '/' ||
-      pathname === '/login' ||
-      pathname.startsWith('/login/') ||
-      pathname === '/signup' ||
-      pathname.startsWith('/signup/')
-    ) {
+    if (pathname === '/') {
       const url = request.nextUrl.clone()
       url.pathname = '/admin'
       url.search = ''
@@ -228,8 +222,9 @@ export async function middleware(request: NextRequest) {
       process.env.NODE_ENV !== 'production' && process.env.DEV_PLAYER_AUTOLOGIN === 'true'
     if (!devBypass && !hasBetterAuthCookie(request)) {
       const url = request.nextUrl.clone()
-      url.pathname = '/login'
+      url.pathname = '/lobby'
       url.search = ''
+      url.searchParams.set('auth', 'login')
       url.searchParams.set('next', pathname)
       return NextResponse.redirect(url)
     }
@@ -241,11 +236,8 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Surface root redirect (admin container: / → /admin).
+    // /login and /signup are now server-side redirect pages — no middleware needed.
     '/',
-    '/login',
-    '/login/:path*',
-    '/signup',
-    '/signup/:path*',
     // Admin surface protection.
     '/admin/:path*',
     '/api/admin/:path*',
@@ -258,5 +250,7 @@ export const config = {
     '/promotions/:path*',
     '/vip/:path*',
     '/games/:path*',
+    '/referrals',
+    '/referrals/:path*',
   ],
 }

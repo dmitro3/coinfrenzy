@@ -5,6 +5,8 @@ import type { ColumnDef } from '@tanstack/react-table'
 
 import { DataTable } from '@coinfrenzy/ui/admin/data/DataTable'
 
+import { formatMoney } from '../_shared.client'
+
 export interface RedeemRateRow {
   date: string
   revenueUsd: string
@@ -18,10 +20,9 @@ export interface RedeemRateRow {
 
 interface Props {
   rows: RedeemRateRow[]
-  formatMoney: (s: string) => string
 }
 
-export function RedeemRateTable({ rows, formatMoney }: Props) {
+export function RedeemRateTable({ rows }: Props) {
   const columns = React.useMemo<ColumnDef<RedeemRateRow, unknown>[]>(
     () => [
       { accessorKey: 'date', header: 'Date' },
@@ -67,7 +68,7 @@ export function RedeemRateTable({ rows, formatMoney }: Props) {
         cell: (c) => `$${formatMoney(c.getValue() as string)}`,
       },
     ],
-    [formatMoney],
+    [],
   )
 
   return (

@@ -1,14 +1,13 @@
 'use client'
 
-import * as React from 'react'
 import { ChevronDown, Search, X } from 'lucide-react'
+import * as React from 'react'
 
 import { cn } from '../../lib/utils'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../../primitives/dropdown-menu'
@@ -183,8 +182,8 @@ function FilterDropdownTrigger({ filter }: { filter: FilterDropdown }) {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="max-h-80 w-56 overflow-y-auto">
-        <DropdownMenuLabel>{filter.label}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
+        {/* <DropdownMenuLabel>{filter.label}</DropdownMenuLabel>
+        <DropdownMenuSeparator /> */}
         {filter.options.map((opt, idx) => (
           <React.Fragment key={opt.value}>
             <DropdownMenuCheckboxItem

@@ -29,10 +29,16 @@ export default async function Page({ searchParams }: PageProps) {
   const sp = await searchParams
   const status = typeof sp.status === 'string' ? sp.status : 'active'
   const context = typeof sp.context === 'string' ? sp.context : 'all'
+  const schedule = typeof sp.schedule === 'string' ? sp.schedule : 'all'
   const search = typeof sp.search === 'string' ? sp.search : ''
 
   const [rows, insights, templates] = await Promise.all([
-    fetchPromoCodes({ status, context, search: search || undefined }),
+    fetchPromoCodes({
+      status,
+      context,
+      schedule: schedule !== 'all' ? schedule : undefined,
+      search: search || undefined,
+    }),
     fetchPromoCodeInsights(),
     fetchActiveBonusTemplates(),
   ])
@@ -94,7 +100,7 @@ export default async function Page({ searchParams }: PageProps) {
       <ActivePanel
         rows={serialized}
         templates={templates}
-        filters={{ status, context, search }}
+        filters={{ status, context, schedule, search }}
         canManage
       />
     </ListPageShell>

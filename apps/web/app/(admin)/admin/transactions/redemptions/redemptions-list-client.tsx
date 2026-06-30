@@ -57,14 +57,24 @@ export function RedemptionsListClient({
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const [isNavigating, startNavigation] = React.useTransition()
   const [search, setSearch] = React.useState('')
+
+  const navigate = React.useCallback(
+    (href: string) => {
+      startNavigation(() => {
+        router.push(href)
+      })
+    },
+    [router],
+  )
 
   const update = (key: string, value: string | null) => {
     const next = new URLSearchParams(searchParams.toString())
     if (value == null || value === '' || value === 'all') next.delete(key)
     else next.set(key, value)
     const qs = next.toString()
-    router.push(qs ? `${pathname}?${qs}` : pathname)
+    navigate(qs ? `${pathname}?${qs}` : pathname)
   }
 
   const filtered = React.useMemo(() => {
@@ -284,7 +294,7 @@ export function RedemptionsListClient({
           initialMax !== ''
             ? () => {
                 setSearch('')
-                router.push(pathname)
+                navigate(pathname)
               }
             : undefined
         }
@@ -296,6 +306,7 @@ export function RedemptionsListClient({
         initialMax={initialMax}
         amountUnit="USD"
         exportHref="/api/admin/transactions/redemptions/export"
+        onNavigate={navigate}
       />
       <DataTable
         scope="redemptions"
@@ -304,6 +315,7 @@ export function RedemptionsListClient({
         pagination="paginated"
         pageSize={50}
         density="compact"
+        loading={isNavigating}
         hideToolbar
         onRowClick={(row) => router.push(`/admin/transactions/redemptions/${row.id}`)}
         emptyContent={

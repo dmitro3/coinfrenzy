@@ -27,7 +27,7 @@ export function PlayerFooter({ className }: { className?: string }) {
         <div className="relative flex w-full flex-col items-center gap-4 border-b border-[var(--cf-border-subtle)] pb-8">
           <CoinFrenzyLogo variant="wordmark" width={150} height={48} />
 
-          <p className="text-center text-sm font-extrabold text-white sm:text-base">
+          <p className="text-center text-sm font-semibold text-white">
             Play free. Win real. That&apos;s the Frenzy.
           </p>
 

@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { ChevronLeft, Search } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
+import { Suspense } from 'react'
 
 import {
   CategoryTabs,
@@ -13,6 +14,8 @@ import {
 import { getActiveCurrency } from '@/lib/active-currency'
 import { loadGamesCatalog } from '@/lib/games-catalog'
 import { countsByPlayerCategory, groupByPlayerCategory } from '@/lib/player-categories'
+
+import { CasinoGamesSearchForm } from './_search-form'
 
 export const dynamic = 'force-dynamic'
 
@@ -79,36 +82,14 @@ export default async function CasinoGamesPage({
         <ChevronLeft className="h-4 w-4" /> {heading}
       </Link>
 
-      <form className="mt-4 flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[260px]">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--cf-gray-light)]" />
-          <input
-            name="q"
-            defaultValue={search}
-            placeholder="Search"
-            className="h-11 w-full rounded-md border border-[var(--cf-border-default)] bg-[var(--cf-bg-elevated)] pl-10 pr-3 text-sm text-white placeholder:text-[var(--cf-gray-light)] focus:border-[var(--cf-gold-medium)] focus:outline-none"
-          />
-        </div>
-        <select
-          name="provider"
-          defaultValue={provider}
-          className="h-11 min-w-[180px] rounded-md border border-[var(--cf-border-default)] bg-[var(--cf-bg-elevated)] px-3 text-sm text-white focus:border-[var(--cf-gold-medium)] focus:outline-none"
-        >
-          <option value="">All Providers</option>
-          {providers.map((p) => (
-            <option key={p.slug} value={p.slug}>
-              {p.displayName}
-            </option>
-          ))}
-        </select>
-        {validSlug && <input type="hidden" name="category" value={validSlug} />}
-        <button
-          type="submit"
-          className="cf-gold-gradient h-11 rounded-md px-5 text-sm font-bold uppercase tracking-wider text-[#1a1a1a]"
-        >
-          Apply
-        </button>
-      </form>
+      <Suspense fallback={null}>
+        <CasinoGamesSearchForm
+          defaultQuery={search}
+          defaultProvider={provider}
+          categorySlug={validSlug}
+          providers={providers}
+        />
+      </Suspense>
 
       <div className="mt-4">
         <CategoryTabs counts={counts} activeSlug={validSlug ?? undefined} />

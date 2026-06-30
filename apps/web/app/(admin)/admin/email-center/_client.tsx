@@ -992,8 +992,4 @@ function fmtTime(iso: string): string {
   return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
 }
 
-export const EmailCenterClient = {
-  Inbox,
-  FilterActions,
-  ComposeTrigger,
-}
+export { Inbox, FilterActions, ComposeTrigger }

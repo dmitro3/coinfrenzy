@@ -248,10 +248,10 @@ export function PlayersListClient({
           row.original.lastSeenAt ? (
             <time
               dateTime={row.original.lastSeenAt}
-              title={new Date(row.original.lastSeenAt).toLocaleString()}
+              title={formatUtcDateTime(row.original.lastSeenAt)}
               className="text-sm text-ink-secondary"
             >
-              {formatRelative(row.original.lastSeenAt)}
+              {formatUtcDateTime(row.original.lastSeenAt)}
             </time>
           ) : (
             <span className="text-sm text-ink-tertiary">Never</span>
@@ -529,17 +529,15 @@ function initialsFor(text: string): string {
   return (parts[0]?.[0] ?? '?').toUpperCase() + (parts[1]?.[0] ?? '').toUpperCase()
 }
 
-function formatRelative(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime()
-  const sec = Math.floor(ms / 1000)
-  if (sec < 60) return `${sec}s ago`
-  const min = Math.floor(sec / 60)
-  if (min < 60) return `${min}m ago`
-  const h = Math.floor(min / 60)
-  if (h < 24) return `${h}h ago`
-  const d = Math.floor(h / 24)
-  if (d < 30) return `${d}d ago`
-  return new Date(iso).toLocaleDateString()
+function formatUtcDateTime(iso: string): string {
+  const d = new Date(iso)
+  const yyyy = d.getUTCFullYear()
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(d.getUTCDate()).padStart(2, '0')
+  const hh = String(d.getUTCHours()).padStart(2, '0')
+  const min = String(d.getUTCMinutes()).padStart(2, '0')
+  const sec = String(d.getUTCSeconds()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}:${sec} UTC`
 }
 
 function stateOptions() {

@@ -55,6 +55,7 @@ export default async function LobbyPage() {
             headline="Welcome to the Frenzy"
             subhead="Get Free Sweep and Gold Coins Daily"
             alt="Welcome to the Frenzy — get free Sweep and Gold Coins daily"
+            href="/lobby?shop=1"
           />
           <div className="mt-6">
             <CategoryTabs counts={counts} />
@@ -84,6 +85,7 @@ export default async function LobbyPage() {
         headline="Welcome to the Frenzy"
         subhead="Get Free Sweep and Gold Coins Daily"
         alt="Welcome to the Frenzy — get free Sweep and Gold Coins daily"
+        href="/lobby?shop=1"
       />
 
       <div className="mt-6">

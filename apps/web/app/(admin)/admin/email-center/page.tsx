@@ -13,7 +13,7 @@ import { Card, CardContent } from '@coinfrenzy/ui/primitives/card'
 
 import { requireAdminSession } from '@/lib/admin-session'
 
-import { EmailCenterClient } from './_client'
+import { ComposeTrigger, FilterActions, Inbox } from './_client'
 
 export const dynamic = 'force-dynamic'
 
@@ -115,7 +115,7 @@ export default async function Page({ searchParams }: PageProps) {
           >
             Suppression list
           </Link>
-          <EmailCenterClient.ComposeTrigger
+          <ComposeTrigger
             canCompose={canCompose}
             canIgnoreSuppression={canIgnoreSuppression}
             defaultOpen={sp.compose === '1'}
@@ -226,7 +226,7 @@ export default async function Page({ searchParams }: PageProps) {
                 className="h-9 rounded-md border border-line-default bg-surface px-3 text-sm text-ink-primary"
               />
             </div>
-            <EmailCenterClient.FilterActions
+            <FilterActions
               hasFilters={Boolean(
                 filters.search || filters.status !== 'all' || sp.since || sp.until,
               )}
@@ -246,7 +246,7 @@ export default async function Page({ searchParams }: PageProps) {
           </CardContent>
         </Card>
       ) : (
-        <EmailCenterClient.Inbox
+        <Inbox
           rows={inbox.map((r) => ({
             id: r.id,
             recipient: r.recipient,

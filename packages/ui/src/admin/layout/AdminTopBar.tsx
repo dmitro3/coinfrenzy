@@ -80,11 +80,11 @@ export function AdminTopBar({
           ref={searchRef}
           type="search"
           placeholder="Search players, codes, txn id…"
-          className="h-9 border-line-subtle bg-surface pl-9 pr-12 text-sm placeholder:text-ink-tertiary"
+          className="h-9 border-line-subtle bg-surface pl-9 pr-12 text-sm text-ink-primary placeholder:text-ink-tertiary hover:border-line-default focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
         />
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 select-none rounded-sm border border-line-subtle px-1.5 py-0.5 text-xs font-medium text-ink-tertiary">
+        <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 select-none rounded border border-line-subtle bg-base px-1.5 py-0.5 font-mono text-[10px] font-medium text-ink-tertiary">
           /
-        </span>
+        </kbd>
       </div>
 
       <RealtimeStatusIndicator state={realtimeState} />

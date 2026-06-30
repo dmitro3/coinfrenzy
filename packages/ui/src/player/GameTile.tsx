@@ -8,7 +8,7 @@ import { Star } from 'lucide-react'
 
 import { cn } from '../lib/utils'
 import { useFavoritesContext } from './FavoritesContext'
-import { haptic, hapticPatterns, prefersReducedMotion } from './motion-primitives'
+import { haptic, hapticPatterns } from './motion-primitives'
 import { useToast } from './Toast'
 
 export interface GameTileData {
@@ -32,11 +32,8 @@ interface GameTileProps {
   className?: string
 }
 
-const LIFT_DURATION_MS = 400
-
 export function GameTile({ game, currency, className }: GameTileProps) {
   const router = useRouter()
-  const [launching, setLaunching] = React.useState(false)
   const href = `/casino-games/${game.slug}${currency ? `?currency=${currency}` : ''}`
 
   const onClick = React.useCallback(
@@ -45,13 +42,8 @@ export function GameTile({ game, currency, className }: GameTileProps) {
       if (event.button !== 0) return
       event.preventDefault()
       router.prefetch(href)
-      if (prefersReducedMotion()) {
-        router.push(href)
-        return
-      }
-      setLaunching(true)
       haptic(hapticPatterns.tap)
-      window.setTimeout(() => router.push(href), LIFT_DURATION_MS)
+      router.push(href)
     },
     [router, href],
   )
@@ -62,7 +54,6 @@ export function GameTile({ game, currency, className }: GameTileProps) {
       onClick={onClick}
       className={cn(
         'group relative flex aspect-[333/470] flex-col items-center justify-center overflow-hidden rounded-md border-2 border-solid border-transparent transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-custom-yellow-1000 hover:shadow-game-card',
-        launching && 'cf-tile-lift relative z-[60]',
         className,
       )}
       aria-label={`Play ${game.displayName}`}
@@ -149,7 +140,7 @@ function FavoriteStarButton({ gameId, displayName }: { gameId: string; displayNa
     >
       <Star
         className={cn(
-          'h-[26px] w-[26px] text-white transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
+          'h-[26px] w-[26px] text-white transition-all duration-500 ease-[cubic-bezier(0.34_1.56_0.64_1)]',
           'origin-center scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 group-focus-within:scale-100 group-focus-within:opacity-100 [@media(hover:none)]:scale-100 [@media(hover:none)]:opacity-100',
           'hover:scale-110 group-hover:text-white focus-visible:scale-110',
           isFavorite

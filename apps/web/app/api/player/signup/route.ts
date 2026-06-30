@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { randomInt } from 'node:crypto'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
@@ -8,36 +9,50 @@ import { getDb } from '@coinfrenzy/db/client'
 import * as schema from '@coinfrenzy/db/schema'
 
 import { auth } from '@/lib/auth'
+import { sendOtpEmail } from '../_otp-helpers'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 // docs/09 §5.1 + docs/02 §6 — player signup.
 //
-// Wraps Better Auth's email/password signup with our domain provisioning
-// step. Better Auth creates the `auth_user` row (and auto-signs the
-// player in via the session cookie). The `databaseHooks.user.create.after`
-// hook creates the minimal `players` row + GC/SC wallets. We then call
-// `coreAuth.completePlayerProfile` here to fill in the profile data
-// (firstName/state/consent flags/etc.) on the players row.
+// Accepts BOTH the modal payload (email + base64 password + captchaToken
+// + referralCode + isTermsAccepted) and the legacy full payload
+// (email + plaintext password + firstName + lastName + state + dateOfBirth).
 //
-// We forward all set-cookie headers from Better Auth's response so the
-// session lands on the browser exactly as `auth.api.signUpEmail` set it.
+// After creating the account, a 6-digit OTP is sent to the email.
+// The browser session is issued immediately as requested by the user.
 
 const signupBody = z.object({
   email: z.string().email().max(320),
-  password: z.string().min(10).max(128),
-  firstName: z.string().min(1).max(80),
-  lastName: z.string().min(1).max(80),
-  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  state: z.string().length(2),
+  password: z.string().min(1).max(512),
+  captchaToken: z.string().optional(),
+  turnstileToken: z.string().optional(),
+  referralCode: z.string().max(80).optional(),
+  isTermsAccepted: z.boolean().optional(),
+  firstName: z.string().min(1).max(80).optional(),
+  lastName: z.string().min(1).max(80).optional(),
+  dateOfBirth: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  state: z.string().length(2).optional(),
   phone: z.string().max(40).optional(),
   country: z.string().length(2).default('US'),
   emailConsent: z.boolean().optional(),
   smsConsent: z.boolean().optional(),
   attributedPromoCode: z.string().max(80).optional(),
-  turnstileToken: z.string().optional(),
 })
+
+function resolvePassword(raw: string): string {
+  try {
+    const decoded = Buffer.from(raw, 'base64').toString('utf8')
+    if (decoded.length >= 6 && /^[\x20-\x7e]+$/.test(decoded)) return decoded
+  } catch {
+    // not base64
+  }
+  return raw
+}
 
 async function verifyTurnstileToken(
   secretKey: string,
@@ -60,9 +75,9 @@ async function verifyTurnstileToken(
 }
 
 export async function POST(req: NextRequest) {
-  let parsed
+  let raw: z.infer<typeof signupBody>
   try {
-    parsed = signupBody.parse(await req.json())
+    raw = signupBody.parse(await req.json())
   } catch (e) {
     return NextResponse.json(
       {
@@ -73,26 +88,24 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const displayName = `${parsed.firstName} ${parsed.lastName}`.trim()
+  const email = raw.email.trim().toLowerCase()
+  const password = resolvePassword(raw.password)
+  const captchaToken = raw.captchaToken ?? raw.turnstileToken ?? null
+
   const ip =
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     req.headers.get('x-real-ip') ??
     null
 
-  // Cloudflare Turnstile verification — runs before any DB work.
   const e = env()
   if (e.CF_TURNSTILE_SECRET_KEY) {
-    if (!parsed.turnstileToken) {
+    if (!captchaToken) {
       return NextResponse.json(
         { error: 'turnstile_required', message: 'Security challenge is required.' },
         { status: 400 },
       )
     }
-    const passed = await verifyTurnstileToken(
-      e.CF_TURNSTILE_SECRET_KEY,
-      parsed.turnstileToken,
-      ip ?? '',
-    )
+    const passed = await verifyTurnstileToken(e.CF_TURNSTILE_SECRET_KEY, captchaToken, ip ?? '')
     if (!passed) {
       return NextResponse.json(
         { error: 'turnstile_failed', message: 'Security challenge failed. Please try again.' },
@@ -101,10 +114,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Pre-flight: refuse signups whose email/domain is on the admin blocklist.
-  // Without this the /admin/domain-blocking page is decorative — the
-  // operator can add disposable providers but signup wouldn't notice.
-  const email = parsed.email.trim().toLowerCase()
   const domain = email.includes('@') ? email.slice(email.indexOf('@') + 1) : null
   if (domain) {
     const db = getDb()
@@ -129,41 +138,30 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Step 1: create auth_user (+ session cookie via autoSignIn). Better
-  // Auth returns a Response with set-cookie headers when asResponse=true.
+  const displayName =
+    raw.firstName && raw.lastName ? `${raw.firstName} ${raw.lastName}`.trim() : email.split('@')[0]
+
   let authResponse: Response
   try {
     authResponse = await auth.api.signUpEmail({
-      body: {
-        email: parsed.email.trim().toLowerCase(),
-        password: parsed.password,
-        name: displayName,
-      },
+      body: { email, password, name: displayName },
       headers: req.headers,
       asResponse: true,
     })
-  } catch (e) {
-    const message = e instanceof Error ? e.message : 'signup_failed'
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'signup_failed'
     return NextResponse.json({ error: 'signup_failed', message }, { status: 422 })
   }
 
   if (!authResponse.ok) {
-    // Forward the Better Auth error body and status so the form can
-    // surface specific failure reasons (e.g. "email already in use").
     const body = await authResponse.text()
     return new NextResponse(body, {
       status: authResponse.status,
-      headers: {
-        'content-type': authResponse.headers.get('content-type') ?? 'application/json',
-      },
+      headers: { 'content-type': authResponse.headers.get('content-type') ?? 'application/json' },
     })
   }
 
-  // Step 2: complete the players profile that the post-create hook
-  // provisioned with placeholders.
-  const authPayload = (await authResponse.clone().json()) as {
-    user?: { id?: string }
-  }
+  const authPayload = (await authResponse.clone().json()) as { user?: { id?: string } }
   const userId = authPayload.user?.id
   if (!userId) {
     return NextResponse.json(
@@ -175,45 +173,62 @@ export async function POST(req: NextRequest) {
   const profileResult = await coreAuth.completePlayerProfile(getDb(), {
     playerId: userId,
     extras: {
-      firstName: parsed.firstName,
-      lastName: parsed.lastName,
-      dateOfBirth: parsed.dateOfBirth,
-      phone: parsed.phone ?? null,
-      state: parsed.state,
-      country: parsed.country,
+      firstName: raw.firstName ?? null,
+      lastName: raw.lastName ?? null,
+      dateOfBirth: raw.dateOfBirth ?? null,
+      phone: raw.phone ?? null,
+      state: raw.state ?? null,
+      country: raw.country,
       ip,
-      emailConsent: parsed.emailConsent ?? true,
-      smsConsent: parsed.smsConsent ?? false,
-      attributedPromoCode: parsed.attributedPromoCode ?? null,
+      emailConsent: raw.emailConsent ?? true,
+      smsConsent: raw.smsConsent ?? false,
+      attributedPromoCode: raw.attributedPromoCode ?? raw.referralCode ?? null,
     },
   })
 
   if (!profileResult.ok) {
-    // Auth user + minimal players row already exist; surface the error
-    // but the session cookie below will still let them sign in. They'll
-    // be prompted to complete their profile on next load.
-    console.error('[signup] completePlayerProfile failed', {
-      userId,
-      error: profileResult.error,
+    console.error('[signup] completePlayerProfile failed', { userId, error: profileResult.error })
+  }
+
+  const otp = String(randomInt(100000, 999999))
+  const otpIdentifier = `otp:${email}`
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 min
+
+  const db = getDb()
+  await db
+    .delete(schema.authVerification)
+    .where(eq(schema.authVerification.identifier, otpIdentifier))
+  await db.insert(schema.authVerification).values({
+    id: crypto.randomUUID(),
+    identifier: otpIdentifier,
+    value: otp,
+    expiresAt,
+  })
+
+  try {
+    await sendOtpEmail({ email, otp })
+  } catch (err) {
+    console.error('[signup] sendOtpEmail failed', {
+      email,
+      error: err instanceof Error ? err.message : String(err),
     })
   }
 
-  // Forward Better Auth's set-cookie headers so the session lands on the
-  // browser. The body is the original Better Auth signup payload.
   const headers = new Headers()
-  authResponse.headers.forEach((value, key) => {
-    if (key.toLowerCase() === 'set-cookie') {
-      headers.append('set-cookie', value)
-    }
-  })
-  headers.set('content-type', 'application/json')
+  const setCookies = authResponse.headers.getSetCookie()
+  for (const cookie of setCookies) {
+    headers.append('set-cookie', cookie)
+  }
 
-  return new NextResponse(
-    JSON.stringify({
-      ok: true,
-      blockedState: profileResult.ok ? profileResult.value.blockedState : false,
-      user: authPayload.user,
-    }),
-    { status: 200, headers },
+  return NextResponse.json(
+    {
+      data: {
+        user: { email, userId },
+        success: true,
+        message: 'Record created successfully',
+      },
+      errors: [],
+    },
+    { headers },
   )
 }

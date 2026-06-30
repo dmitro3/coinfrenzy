@@ -12,7 +12,7 @@ import { Card, CardContent } from '@coinfrenzy/ui/primitives/card'
 
 import { requireAdminSession } from '@/lib/admin-session'
 
-import { SuppressionClient } from './_client'
+import { AddTrigger, Table } from './_client'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -86,7 +86,7 @@ export default async function Page({ searchParams }: PageProps) {
         { label: 'Suppression' },
       ]}
       renderLink={({ href, children }) => <Link href={href}>{children}</Link>}
-      actions={<SuppressionClient.AddTrigger canAdd={canAdd} />}
+      actions={<AddTrigger canAdd={canAdd} />}
       insights={[
         { label: 'Total', value: total.toLocaleString(), tone: 'neutral' },
         {
@@ -158,7 +158,7 @@ export default async function Page({ searchParams }: PageProps) {
               description="Loosen the filter or add a manual entry."
             />
           ) : (
-            <SuppressionClient.Table rows={initial} canRemove={canRemove} />
+            <Table rows={initial} canRemove={canRemove} />
           )}
         </CardContent>
       </Card>

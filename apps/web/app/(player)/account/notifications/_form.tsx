@@ -3,7 +3,7 @@
 import * as React from 'react'
 
 import { cn } from '@coinfrenzy/ui/lib/utils'
-import { useToast } from '@coinfrenzy/ui/player'
+import { GoldButton, useToast } from '@coinfrenzy/ui/player'
 
 // Marketing preferences form. The live coinfrenzy.com Preferences tab
 // has three toggles (Receive Email offers / Receive SMS offers /
@@ -76,8 +76,9 @@ export function PreferencesForm() {
         <p className="text-xs text-[var(--cf-gray-light)]">
           Please allow up to 30 seconds for the update to complete
         </p>
-        <button
+        <GoldButton
           type="button"
+          variant="gold-horizontal"
           onClick={onSave}
           disabled={!dirty || status === 'saving'}
           className={cn(
@@ -90,7 +91,7 @@ export function PreferencesForm() {
           )}
         >
           {status === 'saving' ? 'Saving…' : status === 'saved' ? 'Saved ✓' : 'Save'}
-        </button>
+        </GoldButton>
       </div>
     </div>
   )

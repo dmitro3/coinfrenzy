@@ -67,7 +67,7 @@ export function ArchivedPanel({ rows, canManage }: { rows: ArchivedRow[]; canMan
             <tr className="border-b border-line-subtle text-left text-xs font-medium uppercase tracking-wide text-ink-tertiary">
               <th className="px-4 py-2">Code</th>
               <th className="px-4 py-2">Bonus</th>
-              <th className="px-4 py-2 text-right">Lifetime uses</th>
+              <th className="px-4 py-2">Lifetime uses</th>
               <th className="px-4 py-2">Expired</th>
               <th className="px-4 py-2">Archived</th>
               <th className="px-4 py-2">Status</th>
@@ -87,7 +87,7 @@ export function ArchivedPanel({ rows, canManage }: { rows: ArchivedRow[]; canMan
                   )}
                 </td>
                 <td className="px-4 py-3 text-ink-secondary">{r.bonusName}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-ink-primary">
+                <td className="px-4 py-3 tabular-nums text-ink-primary">
                   {r.usesCount.toLocaleString()}
                 </td>
                 <td className="px-4 py-3 text-xs text-ink-secondary">

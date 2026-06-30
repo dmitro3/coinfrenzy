@@ -2,7 +2,7 @@ import 'server-only'
 
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { asc, sql } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 
 import { auth as coreAuth, system as systemMod } from '@coinfrenzy/core'
 import { getDb, schema } from '@coinfrenzy/db'
@@ -25,10 +25,7 @@ export default async function Page() {
   const db = getDb()
   const rscCtx = buildAdminRscContext()
   const [maxLevelRow, capsRaw] = await Promise.all([
-    db
-      .select({ max: sql<number>`coalesce(max(${schema.tiers.level}), 0)` })
-      .from(schema.tiers)
-      .orderBy(asc(schema.tiers.level)),
+    db.select({ max: sql<number>`coalesce(max(${schema.tiers.level}), 0)` }).from(schema.tiers),
     systemMod.getTierCaps(rscCtx),
   ])
   const nextLevel = (maxLevelRow[0]?.max ?? 0) + 1

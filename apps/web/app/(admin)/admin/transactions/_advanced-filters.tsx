@@ -16,6 +16,7 @@ interface Props {
   /** Amount-input label — typically "USD" or "SC". */
   amountUnit: 'USD' | 'SC' | 'GC'
   exportHref: string
+  onNavigate?: (href: string) => void
 }
 
 /**
@@ -34,6 +35,7 @@ export function TransactionsAdvancedFilters({
   initialMax,
   amountUnit,
   exportHref,
+  onNavigate,
 }: Props) {
   const router = useRouter()
   const pathname = usePathname()
@@ -63,7 +65,12 @@ export function TransactionsAdvancedFilters({
       next.delete('quick')
     }
     const qs = next.toString()
-    router.push(qs ? `${pathname}?${qs}` : pathname)
+    const href = qs ? `${pathname}?${qs}` : pathname
+    if (onNavigate) {
+      onNavigate(href)
+      return
+    }
+    router.push(href)
   }
 
   const applyDates = () => update({ from: from || null, to: to || null })
@@ -83,95 +90,99 @@ export function TransactionsAdvancedFilters({
   const hasAmounts = initialMin !== '' || initialMax !== ''
 
   return (
-    <div className="flex flex-wrap items-end gap-x-3 gap-y-2 rounded-lg border border-line-subtle bg-surface px-3 py-2.5">
-      <div className="flex flex-wrap items-end gap-2">
-        <span className="text-[11px] font-medium uppercase tracking-wide text-ink-tertiary">
-          Date range
-        </span>
-        <label className="flex items-center gap-1.5 text-xs text-ink-secondary">
-          From
-          <Input
-            type="date"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="h-8 w-36 text-sm"
-          />
-        </label>
-        <label className="flex items-center gap-1.5 text-xs text-ink-secondary">
-          To
-          <Input
-            type="date"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="h-8 w-36 text-sm"
-          />
-        </label>
-        <button
-          type="button"
-          onClick={applyDates}
-          className="inline-flex h-8 items-center rounded-md border border-line-subtle bg-surface px-3 text-xs font-medium text-ink-secondary transition-colors hover:border-line-default hover:text-ink-primary"
-        >
-          Apply
-        </button>
-        {hasDates ? (
-          <button
-            type="button"
-            onClick={clearDates}
-            className="inline-flex h-8 items-center rounded-md px-2 text-xs text-ink-tertiary hover:text-ink-primary"
-          >
-            Clear dates
-          </button>
-        ) : null}
-      </div>
+    <div className="rounded-lg border border-line-subtle bg-surface px-3 py-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-wrap items-end gap-3 md:gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-ink-tertiary">
+              Date range
+            </span>
+            <label className="flex items-center gap-1.5 text-xs text-ink-secondary">
+              From
+              <Input
+                type="date"
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+                className="h-8 w-36 text-sm"
+              />
+            </label>
+            <label className="flex items-center gap-1.5 text-xs text-ink-secondary">
+              To
+              <Input
+                type="date"
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+                className="h-8 w-36 text-sm"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={applyDates}
+              className="inline-flex h-8 items-center rounded-md border border-line-subtle bg-surface px-3 text-xs font-medium text-ink-secondary transition-colors hover:border-line-default hover:text-ink-primary"
+            >
+              Apply
+            </button>
+            {hasDates ? (
+              <button
+                type="button"
+                onClick={clearDates}
+                className="inline-flex h-8 items-center rounded-md px-2 text-xs text-ink-tertiary hover:text-ink-primary"
+              >
+                Clear dates
+              </button>
+            ) : null}
+          </div>
 
-      <div className="flex flex-wrap items-end gap-2 sm:border-l sm:border-line-subtle sm:pl-3">
-        <span className="text-[11px] font-medium uppercase tracking-wide text-ink-tertiary">
-          Amount ({amountUnit})
-        </span>
-        <label className="flex items-center gap-1.5 text-xs text-ink-secondary">
-          Min
-          <Input
-            type="number"
-            min={0}
-            step="0.01"
-            value={min}
-            onChange={(e) => setMin(e.target.value)}
-            placeholder="0.00"
-            className="h-8 w-24 text-sm"
-          />
-        </label>
-        <label className="flex items-center gap-1.5 text-xs text-ink-secondary">
-          Max
-          <Input
-            type="number"
-            min={0}
-            step="0.01"
-            value={max}
-            onChange={(e) => setMax(e.target.value)}
-            placeholder="∞"
-            className="h-8 w-24 text-sm"
-          />
-        </label>
-        <button
-          type="button"
-          onClick={applyAmounts}
-          className="inline-flex h-8 items-center rounded-md border border-line-subtle bg-surface px-3 text-xs font-medium text-ink-secondary transition-colors hover:border-line-default hover:text-ink-primary"
-        >
-          Apply
-        </button>
-        {hasAmounts ? (
-          <button
-            type="button"
-            onClick={clearAmounts}
-            className="inline-flex h-8 items-center rounded-md px-2 text-xs text-ink-tertiary hover:text-ink-primary"
-          >
-            Clear amount
-          </button>
-        ) : null}
-      </div>
+          <div className="flex flex-wrap items-center gap-2 md:border-l md:border-line-subtle md:pl-4">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-ink-tertiary">
+              Amount ({amountUnit})
+            </span>
+            <label className="flex items-center gap-1.5 text-xs text-ink-secondary">
+              Min
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={min}
+                onChange={(e) => setMin(e.target.value)}
+                placeholder="0.00"
+                className="h-8 w-24 text-sm"
+              />
+            </label>
+            <label className="flex items-center gap-1.5 text-xs text-ink-secondary">
+              Max
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={max}
+                onChange={(e) => setMax(e.target.value)}
+                placeholder="∞"
+                className="h-8 w-24 text-sm"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={applyAmounts}
+              className="inline-flex h-8 items-center rounded-md border border-line-subtle bg-surface px-3 text-xs font-medium text-ink-secondary transition-colors hover:border-line-default hover:text-ink-primary"
+            >
+              Apply
+            </button>
+            {hasAmounts ? (
+              <button
+                type="button"
+                onClick={clearAmounts}
+                className="inline-flex h-8 items-center rounded-md px-2 text-xs text-ink-tertiary hover:text-ink-primary"
+              >
+                Clear amount
+              </button>
+            ) : null}
+          </div>
+        </div>
 
-      <div className="ml-auto">
-        <TransactionsExportButton href={exportHref} />
+        <div className="self-end">
+          <TransactionsExportButton href={exportHref} />
+        </div>
       </div>
     </div>
   )

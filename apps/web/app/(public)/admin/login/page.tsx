@@ -19,7 +19,7 @@ export default async function AdminLoginPage({ searchParams }: PageProps) {
   if (existing) redirect(next)
 
   return (
-    <main className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10 text-foreground">
+    <main className="admin-surface dark relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10 text-foreground">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,215,0,0.08),transparent_55%)]" />
       <div className="relative z-10 w-full max-w-md">
         <div className="mb-8 flex items-center justify-center gap-2">

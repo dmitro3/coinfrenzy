@@ -23,7 +23,6 @@ interface Props {
     slug: string
     displayName: string
     bodyTemplate: string
-    senderId: string | null
     category: string | null
   }
   variables: VariablePickerVariable[]
@@ -38,15 +37,19 @@ interface PreviewResponse {
   variablesMissing: string[]
 }
 
+interface ApiErrorResponse {
+  error?: string
+}
+
 export function SmsTemplateEditor({ templateId, initial, variables, samplePlayers }: Props) {
   const router = useRouter()
   const [slug, setSlug] = React.useState(initial?.slug ?? '')
   const [displayName, setDisplayName] = React.useState(initial?.displayName ?? '')
   const [body, setBody] = React.useState(initial?.bodyTemplate ?? 'Hi {{ player.displayName }}, ')
-  const [senderId, setSenderId] = React.useState(initial?.senderId ?? '')
   const [category, setCategory] = React.useState(initial?.category ?? '')
   const [saving, setSaving] = React.useState(false)
   const [saveError, setSaveError] = React.useState<string | null>(null)
+  const [saveSuccess, setSaveSuccess] = React.useState<string | null>(null)
   const [activeSampleIdx, setActiveSampleIdx] = React.useState(0)
   const [preview, setPreview] = React.useState<PreviewResponse | null>(null)
   const [previewLoading, setPreviewLoading] = React.useState(false)
@@ -103,6 +106,7 @@ export function SmsTemplateEditor({ templateId, initial, variables, samplePlayer
   async function save(): Promise<void> {
     setSaving(true)
     setSaveError(null)
+    setSaveSuccess(null)
     try {
       const url = templateId
         ? `/api/admin/crm/sms-templates/${templateId}`
@@ -115,23 +119,53 @@ export function SmsTemplateEditor({ templateId, initial, variables, samplePlayer
           slug,
           displayName,
           bodyTemplate: body,
-          senderId: senderId || null,
           category: category || null,
         }),
       })
+
+      const data = (await res.json().catch(() => null)) as
+        | ApiErrorResponse
+        | { id?: string; version?: number }
+        | null
+
       if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string }
-        setSaveError(err.error ?? 'failed_to_save')
+        const errData = data as ApiErrorResponse | null
+        if (res.status === 401) {
+          setSaveError('Session expired. Please log in again.')
+          return
+        }
+        if (res.status === 403) {
+          setSaveError('You do not have permission to manage SMS templates.')
+          return
+        }
+        if (res.status === 409) {
+          setSaveError('That slug is already in use. Choose a different slug.')
+          return
+        }
+        if (res.status >= 500) {
+          setSaveError('A server error occurred. Please try again.')
+          return
+        }
+        setSaveError(errData?.error ?? 'Failed to save template.')
         return
       }
-      const json = (await res.json()) as { id?: string }
-      if (!templateId && json.id) {
-        router.push(`/admin/crm/sms-templates/${json.id}`)
-      } else {
-        router.refresh()
+
+      const successData = data as { id?: string } | null
+      if (!templateId) {
+        if (!successData?.id) {
+          setSaveError(
+            'Template was created but no ID was returned. Refresh the list and try again.',
+          )
+          return
+        }
+        router.push(`/admin/crm/sms-templates/${successData.id}?created=1`)
+        return
       }
-    } catch (e) {
-      setSaveError(e instanceof Error ? e.message : String(e))
+
+      setSaveSuccess('SMS template saved successfully.')
+      router.refresh()
+    } catch {
+      setSaveError('Network error — please check your connection and try again.')
     } finally {
       setSaving(false)
     }
@@ -140,6 +174,17 @@ export function SmsTemplateEditor({ templateId, initial, variables, samplePlayer
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
       <div className="space-y-3">
+        {saveError ? (
+          <div className="rounded-md border border-critical/40 bg-critical/10 px-4 py-3 text-sm text-critical">
+            {saveError}
+          </div>
+        ) : null}
+        {saveSuccess ? (
+          <div className="rounded-md border border-positive/40 bg-positive/10 px-4 py-3 text-sm text-positive">
+            {saveSuccess}
+          </div>
+        ) : null}
+
         <div className="rounded-lg border border-line-subtle bg-surface p-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Slug">
@@ -152,13 +197,6 @@ export function SmsTemplateEditor({ templateId, initial, variables, samplePlayer
             </Field>
             <Field label="Display name">
               <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-            </Field>
-            <Field label="Sender ID (optional)">
-              <Input
-                value={senderId ?? ''}
-                onChange={(e) => setSenderId(e.target.value)}
-                placeholder="COINFRENZY"
-              />
             </Field>
             <Field label="Category">
               <Input value={category ?? ''} onChange={(e) => setCategory(e.target.value)} />
@@ -207,7 +245,6 @@ export function SmsTemplateEditor({ templateId, initial, variables, samplePlayer
               samplePlayerId={activeSample.id}
             />
           ) : null}
-          {saveError ? <span className="text-xs text-rose-400">Error: {saveError}</span> : null}
         </div>
       </div>
 

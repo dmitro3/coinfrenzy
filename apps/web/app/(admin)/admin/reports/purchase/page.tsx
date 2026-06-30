@@ -47,8 +47,8 @@ export default async function PurchaseReportPage() {
     .select({
       players: sql<string>`COUNT(*)::text`,
       buyers: sql<string>`COUNT(*) FILTER (WHERE ${schema.playerLifetimeStats.purchaseCount} > 0)::text`,
-      totalDeposited: sql<string>`COALESCE(SUM(${schema.playerLifetimeStats.totalDepositedUsd}), 0)::text`,
-      totalRedeemed: sql<string>`COALESCE(SUM(${schema.playerLifetimeStats.totalRedeemedUsd}), 0)::text`,
+      totalDeposited: sql<string>`COALESCE(SUM(${schema.playerLifetimeStats.totalDepositedUsd}), 0)::bigint::text`,
+      totalRedeemed: sql<string>`COALESCE(SUM(${schema.playerLifetimeStats.totalRedeemedUsd}), 0)::bigint::text`,
     })
     .from(schema.playerLifetimeStats)
 

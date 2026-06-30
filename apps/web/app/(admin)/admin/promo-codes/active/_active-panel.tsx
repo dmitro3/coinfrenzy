@@ -1,7 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { Archive, Ban, Pencil, Play, Plus, Search } from 'lucide-react'
+import { Archive, Ban, Loader2, Pencil, Play, Plus, Search } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import { Button } from '@coinfrenzy/ui/primitives/button'
 import { Card, CardContent } from '@coinfrenzy/ui/primitives/card'
@@ -38,6 +39,7 @@ interface PanelProps {
   filters: {
     status: string
     context: string
+    schedule: string
     search: string
   }
   canManage: boolean
@@ -71,10 +73,102 @@ function contextLabel(ctx: string | null): string {
   return ctx
 }
 
+/** Thin styled select that matches the dark admin theme */
+function FilterSelect({
+  name,
+  value,
+  onChange,
+  children,
+}: {
+  name: string
+  value: string
+  onChange: (value: string) => void
+  children: React.ReactNode
+}) {
+  return (
+    <select
+      name={name}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="h-9 rounded-md border border-line-subtle bg-surface px-3 text-sm text-ink-primary transition-colors hover:border-line-default focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+    >
+      {children}
+    </select>
+  )
+}
+
 export function ActivePanel({ rows, templates, filters, canManage }: PanelProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<PromoCodeEditable | null>(null)
   const [busyId, setBusyId] = React.useState<string | null>(null)
+  const [navigating, setNavigating] = React.useState(false)
+
+  // Local filter state mirrors URL params — updated immediately on change
+  const [localStatus, setLocalStatus] = React.useState(filters.status)
+  const [localContext, setLocalContext] = React.useState(filters.context)
+  const [localSchedule, setLocalSchedule] = React.useState(filters.schedule)
+  const [localSearch, setLocalSearch] = React.useState(filters.search)
+
+  // Debounce ref for search input
+  const searchDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  /** Push updated filters to the URL, triggering a server re-fetch */
+  function applyFilters(overrides: Partial<typeof filters>) {
+    setNavigating(true)
+    const params = new URLSearchParams(searchParams.toString())
+    const next = {
+      status: localStatus,
+      context: localContext,
+      schedule: localSchedule,
+      search: localSearch,
+      ...overrides,
+    }
+
+    if (next.status && next.status !== 'active') params.set('status', next.status)
+    else params.delete('status')
+
+    if (next.context && next.context !== 'all') params.set('context', next.context)
+    else params.delete('context')
+
+    if (next.schedule && next.schedule !== 'all') params.set('schedule', next.schedule)
+    else params.delete('schedule')
+
+    if (next.search) params.set('search', next.search)
+    else params.delete('search')
+
+    router.push(`?${params.toString()}`)
+  }
+
+  function handleStatusChange(value: string) {
+    setLocalStatus(value)
+    applyFilters({ status: value })
+  }
+
+  function handleContextChange(value: string) {
+    setLocalContext(value)
+    applyFilters({ context: value })
+  }
+
+  function handleScheduleChange(value: string) {
+    setLocalSchedule(value)
+    applyFilters({ schedule: value })
+  }
+
+  function handleSearchChange(value: string) {
+    setLocalSearch(value)
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    searchDebounceRef.current = setTimeout(() => {
+      applyFilters({ search: value })
+    }, 380)
+  }
+
+  // Stop navigating spinner once the URL params stabilize
+  React.useEffect(() => {
+    setNavigating(false)
+  }, [filters])
 
   function openCreate() {
     setEditing(null)
@@ -121,57 +215,63 @@ export function ActivePanel({ rows, templates, filters, canManage }: PanelProps)
 
   return (
     <>
-      <form
-        method="get"
-        className="flex flex-wrap items-center gap-2 rounded-md border border-line-subtle bg-surface p-3"
-      >
+      {/* ── Filter bar ───────────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-line-subtle bg-surface p-3">
+        {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
           <input
             name="search"
-            defaultValue={filters.search}
+            value={localSearch}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search code…"
-            className="h-9 w-full rounded-md border border-line-subtle bg-bg pl-8 pr-3 text-sm text-ink-primary placeholder:text-ink-tertiary focus:border-line-default focus:outline-none"
+            className="h-9 w-full rounded-md border border-line-subtle bg-base pl-9 pr-3 text-sm text-ink-primary placeholder:text-ink-tertiary transition-colors hover:border-line-default focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
-        <select
-          name="status"
-          defaultValue={filters.status}
-          className="h-9 rounded-md border border-line-subtle bg-bg px-3 text-sm text-ink-primary"
-        >
+
+        {/* Status filter */}
+        <FilterSelect name="status" value={localStatus} onChange={handleStatusChange}>
           <option value="all">All statuses</option>
           <option value="active">Active</option>
           <option value="inactive">Disabled</option>
           <option value="archived">Archived</option>
-        </select>
-        <select
-          name="context"
-          defaultValue={filters.context}
-          className="h-9 rounded-md border border-line-subtle bg-bg px-3 text-sm text-ink-primary"
-        >
+        </FilterSelect>
+
+        {/* Schedule filter — derived from validFrom logic */}
+        <FilterSelect name="schedule" value={localSchedule} onChange={handleScheduleChange}>
+          <option value="all">All schedules</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="live">Live now</option>
+          <option value="expired">Expired</option>
+        </FilterSelect>
+
+        {/* Context filter */}
+        <FilterSelect name="context" value={localContext} onChange={handleContextChange}>
           <option value="all">All contexts</option>
           <option value="standalone">Free gift</option>
           <option value="signup">Signup</option>
           <option value="purchase">Purchase</option>
-        </select>
-        <button
-          type="submit"
-          className="h-9 rounded-md bg-accent px-4 text-sm font-medium text-accent-foreground hover:bg-accent/90"
-        >
-          Apply
-        </button>
+        </FilterSelect>
+
+        {/* Live loading indicator — shown while navigation is in-flight */}
+        {navigating && (
+          <Loader2 className="h-4 w-4 animate-spin text-ink-tertiary" aria-label="Loading…" />
+        )}
+
+        {/* New promo code button */}
         {canManage && (
           <Button
             type="button"
             onClick={openCreate}
-            className="h-9"
+            className="ml-auto h-9"
             disabled={templates.length === 0}
           >
             <Plus className="h-3.5 w-3.5" /> New promo code
           </Button>
         )}
-      </form>
+      </div>
 
+      {/* ── Data table ───────────────────────────────────────────────────── */}
       <Card>
         <CardContent className="p-0">
           {rows.length === 0 ? (

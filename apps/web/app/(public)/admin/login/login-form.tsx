@@ -2,7 +2,6 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 import { AlertCircle, Loader2, ShieldCheck } from 'lucide-react'
 
 import { Button } from '@coinfrenzy/ui/primitives/button'
@@ -53,9 +52,6 @@ export function LoginForm({ nextPath }: LoginFormProps) {
    */
   const [loading, setLoading] = React.useState(false)
 
-  const [turnstileToken, setTurnstileToken] = React.useState<string | null>(null)
-  const turnstileRef = React.useRef<TurnstileInstance>(null)
-
   // -------------------------------------------------------------------------
   // Step 1 – email + password
   // -------------------------------------------------------------------------
@@ -69,7 +65,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       const res = await fetch('/api/admin/auth/login', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email, password, turnstileToken }),
+        body: JSON.stringify({ email, password }),
       })
       const data = (await res.json().catch(() => ({}))) as Record<string, unknown>
 
@@ -78,9 +74,6 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           step: 'password',
           error: humanizeError((data.error as string) || 'login_failed'),
         })
-        // Reset Turnstile so the user can complete a fresh challenge.
-        setTurnstileToken(null)
-        turnstileRef.current?.reset()
         return
       }
 
@@ -206,17 +199,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
   // -------------------------------------------------------------------------
 
   if (state.step === 'password') {
-    return (
-      <PasswordStep
-        error={state.error}
-        loading={loading}
-        turnstileToken={turnstileToken}
-        turnstileRef={turnstileRef}
-        onTurnstileSuccess={setTurnstileToken}
-        onTurnstileReset={() => setTurnstileToken(null)}
-        onSubmit={submitPassword}
-      />
-    )
+    return <PasswordStep error={state.error} loading={loading} onSubmit={submitPassword} />
   }
 
   if (state.step === 'setup_2fa') {
@@ -310,30 +293,16 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 interface PasswordStepProps {
   error?: string
   loading: boolean
-  turnstileToken: string | null
-  turnstileRef: React.RefObject<TurnstileInstance | null>
-  onTurnstileSuccess: (token: string) => void
-  onTurnstileReset: () => void
   onSubmit: (email: string, password: string) => Promise<void>
 }
 
-function PasswordStep({
-  error,
-  loading,
-  turnstileToken,
-  turnstileRef,
-  onTurnstileSuccess,
-  onTurnstileReset,
-  onSubmit,
-}: PasswordStepProps) {
+function PasswordStep({ error, loading, onSubmit }: PasswordStepProps) {
   // Controlled state preserves field values across submissions and errors.
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [validationError, setValidationError] = React.useState<string | null>(null)
 
-  const hasTurnstile = !!process.env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY
-  // Disable submit while loading OR when Turnstile is required but not yet solved.
-  const isDisabled = loading || (hasTurnstile && !turnstileToken)
+  const isDisabled = loading
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -414,20 +383,6 @@ function PasswordStep({
             />
           </div>
 
-          {hasTurnstile ? (
-            <div className="relative z-20 mt-3 w-full min-h-[70px] min-w-0 flex flex-col items-stretch justify-center [overflow:visible] isolate">
-              <Turnstile
-                ref={turnstileRef}
-                siteKey={process.env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY!}
-                onSuccess={onTurnstileSuccess}
-                onExpire={onTurnstileReset}
-                onError={onTurnstileReset}
-                options={{ theme: 'auto', size: 'flexible' }}
-                className="w-full"
-              />
-            </div>
-          ) : null}
-
           <Button
             id="admin-login-submit"
             type="submit"
@@ -438,7 +393,7 @@ function PasswordStep({
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-                Signing in…
+                Validating user data…
               </>
             ) : (
               'Continue'

@@ -11,11 +11,19 @@ import { cn } from '../lib/utils'
 interface TopOfferStripProps {
   message: string
   ctaLabel: string
-  ctaHref: string
+  ctaHref?: string
+  /** When provided, renders a button instead of a Link — use to open a modal without navigation. */
+  ctaOnClick?: () => void
   className?: string
 }
 
-export function TopOfferStrip({ message, ctaLabel, ctaHref, className }: TopOfferStripProps) {
+export function TopOfferStrip({
+  message,
+  ctaLabel,
+  ctaHref,
+  ctaOnClick,
+  className,
+}: TopOfferStripProps) {
   const segment = (
     <span className="cf-top-offer__item">
       <span className="cf-top-offer__icon">
@@ -33,9 +41,15 @@ export function TopOfferStrip({ message, ctaLabel, ctaHref, className }: TopOffe
           ),
         )}
       </span>
-      <Link href={ctaHref} className="cf-top-offer__cta">
-        {ctaLabel}
-      </Link>
+      {ctaOnClick ? (
+        <button type="button" onClick={ctaOnClick} className="cf-top-offer__cta">
+          {ctaLabel}
+        </button>
+      ) : ctaHref ? (
+        <Link href={ctaHref} className="cf-top-offer__cta">
+          {ctaLabel}
+        </Link>
+      ) : null}
     </span>
   )
 
