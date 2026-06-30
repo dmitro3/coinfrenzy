@@ -43,7 +43,7 @@
     "handlebars": "^4.7.9",
     "inngest": "^3.54.2",
     "lucide-react": "^0.445.0",
-    "next": "^15.0.3",
+    "next": "^16.2.9",
     "pusher-js": "^8.5.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
