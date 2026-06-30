@@ -1,0 +1,110 @@
+# CoinFrenzy — production Docker Compose.
+#
+# Three services:
+#   worker  → apps/worker  (Inngest functions + cron, :3030)   — "backend"
+#   player  → apps/web      (player + marketing surface, :3000)
+#   admin   → apps/web      (admin surface, :3001 → container :3000)
+#
+# player + admin are the SAME Next.js build. The `player` service builds the
+# `coinfrenzy-web:latest` image once; `admin` reuses that exact image. In
+# production they sit behind different hostnames (coinfrenzy.com vs
+# admin.coinfrenzy.com) via your reverse proxy / load balancer.
+#
+# Secrets are NOT in this file. Copy `.env.docker.example` → `.env.docker`
+# and fill it in. That file is git-ignored and injected at runtime only.
+#
+# Usage:
+#   cp .env.docker.example .env.docker   # then edit
+#   docker compose build
+#   docker compose up -d
+#   docker compose logs -f
+
+name: coinfrenzy
+
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: docker/worker.Dockerfile
+    image: coinfrenzy-worker:latest
+    env_file: .env.docker
+    environment:
+      NODE_ENV: production
+      PORT: '3030'
+    ports:
+      - '3051:3030'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3030/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    restart: unless-stopped
+
+  player:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+      # NEXT_PUBLIC_* are baked into the client bundle at build time.
+      args:
+        NEXT_PUBLIC_PUSHER_KEY: '${NEXT_PUBLIC_PUSHER_KEY:-}'
+        NEXT_PUBLIC_PUSHER_CLUSTER: '${NEXT_PUBLIC_PUSHER_CLUSTER:-}'
+        NEXT_PUBLIC_FINIX_APPLICATION_ID: '${NEXT_PUBLIC_FINIX_APPLICATION_ID:-}'
+        NEXT_PUBLIC_FINIX_ENVIRONMENT: '${NEXT_PUBLIC_FINIX_ENVIRONMENT:-sandbox}'
+        # Baked into the client JS bundle at build time — NOT a secret.
+        NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY: '${NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY:-}'
+    image: coinfrenzy-web:latest
+    env_file: .env.docker
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      HOSTNAME: '0.0.0.0'
+      NEXT_PUBLIC_APP_SURFACE: player
+      # APP_SURFACE (no NEXT_PUBLIC_ prefix) is read by Edge Middleware at
+      # runtime. NEXT_PUBLIC_* vars are statically inlined at build time so
+      # they'd be undefined in a shared image; this plain var is always live.
+      APP_SURFACE: player
+    ports:
+      - '3052:3000'
+    depends_on:
+      worker:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    restart: unless-stopped
+
+  admin:
+    # Reuses the image built by `player` — player + admin + marketing are one
+    # Next.js build. No second build. pull_policy: never ensures Compose uses
+    # the locally built image and never tries to pull from a registry.
+    image: coinfrenzy-web:latest
+    pull_policy: never
+    env_file: .env.docker
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      HOSTNAME: '0.0.0.0'
+      NEXT_PUBLIC_APP_SURFACE: admin
+      APP_SURFACE: admin
+    ports:
+      - '3053:3000'
+    depends_on:
+      player:
+        condition: service_healthy
+    restart: unless-stopped

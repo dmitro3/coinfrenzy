@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+
+# Environment variables — never commit
+.env
+.env.local
+.env.*.local
+.env.development
+.env.staging
+.env.production
+.env.docker
+
+# Doppler
+.doppler.yaml
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+# macOS AppleDouble metadata (created when unzipping archives on macOS)
+**/__MACOSX/**
+**/._*
+
+# Coverage / test outputs
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Drizzle generated SQL is committed — but ignore any local override
+packages/db/.drizzle-cache/
+
+# Cloudflare R2 / local file caches
+.r2-cache/

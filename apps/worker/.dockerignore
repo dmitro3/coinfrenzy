@@ -1,0 +1,14 @@
+.git
+.github
+.vscode
+.cursor
+docs
+reference
+**/.DS_Store
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+**/.cache
+**/.env*
+*.log

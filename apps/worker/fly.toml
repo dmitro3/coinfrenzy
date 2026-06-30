@@ -1,0 +1,45 @@
+# docs/01 §10 + docs/02 §3 — Fly.io worker app.
+#
+# Single-region (IAD), single-process. Bumps to two machines for HA when
+# the volume of cron + queue work justifies it; until then the inngest
+# client + cron functions are perfectly happy on a single dedicated CPU.
+#
+# Secrets are NOT in this file. Push them via:
+#   doppler run -- flyctl secrets import --app coinfrenzy-worker < secrets.env
+# or set them one by one with `flyctl secrets set`.
+
+app = "coinfrenzy-worker"
+primary_region = "iad"
+kill_signal = "SIGTERM"
+kill_timeout = "30s"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3030"
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port = 3030
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/healthz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
+  cpus = 1
+  cpu_kind = "shared"
+
+[deploy]
+  strategy = "rolling"

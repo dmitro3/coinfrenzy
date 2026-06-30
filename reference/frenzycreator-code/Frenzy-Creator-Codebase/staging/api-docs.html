@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Integration Docs | CoinFrenzy Creator Program</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#0a0a0a">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #020309;
+            --card: #0a0a10;
+            --elevated: #111118;
+            --border: #1a1a24;
+            --gold: #d4a855;
+            --gold-light: #e8c677;
+            --white: #fafafa;
+            --gray: #6b7280;
+            --gray-light: #9ca3af;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --blue: #3b82f6;
+            --purple: #8b5cf6;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--black);
+            color: var(--white);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+        .doc-header { border-bottom: 1px solid var(--border); padding: 2rem 0; }
+        .doc-header .badge { display: inline-flex; align-items: center; gap: 6px; padding: 0.35rem 0.75rem; background: rgba(212, 168, 85, 0.1); border: 1px solid rgba(212, 168, 85, 0.2); border-radius: 6px; font-size: 0.7rem; font-weight: 600; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+        .doc-header h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .doc-header h1 span { color: var(--gold); }
+        .doc-header p { font-size: 1.05rem; color: var(--gray-light); max-width: 650px; }
+        .doc-header .version { margin-top: 1rem; font-size: 0.8rem; color: var(--gray); }
+        .doc-nav { position: sticky; top: 0; z-index: 50; background: rgba(2, 3, 9, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0.75rem 0; margin-bottom: 2rem; }
+        .doc-nav .container { display: flex; gap: 0.25rem; overflow-x: auto; padding-bottom: 4px; }
+        .doc-nav a { padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.78rem; font-weight: 500; color: var(--gray); text-decoration: none; white-space: nowrap; transition: all 0.2s; }
+        .doc-nav a:hover { color: var(--white); background: rgba(255,255,255,0.05); }
+        .doc-section { margin-bottom: 3.5rem; scroll-margin-top: 80px; }
+        .doc-section h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 10px; }
+        .doc-section h2 .icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .doc-section h3 { font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 0.75rem; color: var(--gold); }
+        .doc-section p { color: var(--gray-light); margin-bottom: 1rem; }
+        pre { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; overflow-x: auto; margin: 1rem 0 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.7; color: var(--gray-light); }
+        .c { color: #4a5568; } .k { color: var(--gold); } .s { color: #22c55e; } .n { color: #f59e0b; } .m { color: var(--blue); } .u { color: var(--purple); }
+        code { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; background: rgba(212, 168, 85, 0.1); color: var(--gold); padding: 2px 6px; border-radius: 4px; }
+        .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin: 1rem 0; }
+        .info-card.gold { background: rgba(212, 168, 85, 0.05); border-color: rgba(212, 168, 85, 0.2); }
+        .info-card.blue { background: rgba(59, 130, 246, 0.05); border-color: rgba(59, 130, 246, 0.2); }
+        .info-card.green { background: rgba(34, 197, 94, 0.05); border-color: rgba(34, 197, 94, 0.2); }
+        .info-card.red { background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2); }
+        .info-card h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px; }
+        .info-card p { font-size: 0.9rem; margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; }
+        th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        th { color: var(--gold); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        td { color: var(--gray-light); }
+        td code { font-size: 0.78rem; }
+        ul, ol { margin: 0.75rem 0 1.25rem 1.25rem; color: var(--gray-light); }
+        li { margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .endpoint { display: inline-flex; align-items: center; gap: 8px; padding: 0.5rem 1rem; background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin: 0.5rem 0; }
+        .endpoint .mth { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+        .endpoint .mth.post { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+        .endpoint .mth.get { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+        .endpoint .mth.patch { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .endpoint .pth { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--white); }
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+        .status-badge.draft { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .flow-step { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1rem; }
+        .flow-step .num { width: 32px; height: 32px; border-radius: 50%; background: rgba(212,168,85,0.15); color: var(--gold); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+        .flow-step .txt { flex: 1; }
+        .flow-step .txt strong { color: var(--white); }
+        .doc-footer { border-top: 1px solid var(--border); padding: 2rem 0 3rem; text-align: center; color: var(--gray); font-size: 0.8rem; }
+        @media (max-width: 768px) { .doc-header h1 { font-size: 1.75rem; } pre { font-size: 0.72rem; padding: 0.75rem; } }
+    </style>
+</head>
+<body>
+    <header class="doc-header">
+        <div class="container">
+            <div class="badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Internal — CoinFrenzy.com Dev Team
+            </div>
+            <h1>Frenzy Creator <span>Integration API</span></h1>
+            <p>Everything the CoinFrenzy.com development team needs to connect the casino platform with the Frenzy Creator affiliate portal at frenzycreator.com.</p>
+            <div class="version">
+                <span class="status-badge draft">Pre-Integration Draft</span>
+                &nbsp;&nbsp;v1.4 · March 2026
+            </div>
+        </div>
+    </header>
+
+    <nav class="doc-nav">
+        <div class="container">
+            <a href="#flow">Full Flow</a>
+            <a href="#campaigns">Campaigns & Promo Codes</a>
+            <a href="#user-linking">Account Linking</a>
+            <a href="#verify">Verify Username</a>
+            <a href="#player-reg">Player Registration</a>
+            <a href="#ngr-data">NGR Data Feed</a>
+            <a href="#payout">Lightning Bolt Payout</a>
+            <a href="#calculation">Payout Math</a>
+            <a href="#schedule">Schedule</a>
+            <a href="#endpoints">All Endpoints</a>
+            <a href="#schemas">Table Schemas</a>
+            <a href="#errors">Error Handling</a>
+            <a href="#security">Security</a>
+            <a href="#testing">Testing</a>
+            <a href="#checklist">Go-Live</a>
+        </div>
+    </nav>
+
+    <main class="container">
+
+        <!-- FULL FLOW -->
+        <section class="doc-section" id="flow">
+            <h2>
+                <span class="icon" style="background: rgba(212,168,85,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4a855" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </span>
+                End-to-End Flow
+            </h2>
+            <p>This is the complete lifecycle from affiliate signup to payout. Read this first.</p>
+
+            <div class="flow-step">
+                <div class="num">1</div>
+                <div class="txt"><strong>Affiliate creates a CoinFrenzy.com account.</strong> They choose a unique username (e.g., <code>coolcreator123</code>) visible on their profile page.</div>
+            </div>
+            <div class="flow-step">
+                <div class="num">2</div>
+                <div class="txt"><strong>Affiliate registers on frenzycreator.com.</strong> During signup they enter their CoinFrenzy username. <em>frenzycreator.com calls <code>GET /affiliate/user/{username}</code> to verify the username exists on CoinFrenzy.com. If non-200, signup is blocked.</em></div>
+            </div>
+            <div class="flow-step">
+                <div class="num">3</div>
+                <div class="txt"><strong>Admin approves the affiliate.</strong> On approval, <em>frenzycreator.com calls <code>POST /affiliate</code> to register this affiliate on CoinFrenzy.com's side.</em> If non-200, approval does not proceed.</div>
+            </div>
+            <div class="flow-step">
+                <div class="num">4</div>
+                <div class="txt"><strong>Affiliate creates campaigns on frenzycreator.com.</strong> Each campaign generates a unique <strong>promo code</strong> and <strong>referral link</strong>. Example: promo code <code>BRYCE</code> → link <code>coinfrenzy.com?code=bryce</code>. <em>frenzycreator.com calls <code>POST /affiliate/promocode</code> to sync the code to CoinFrenzy.com.</em> If non-200, the campaign is not created.</div>
+            </div>
+            <div class="flow-step">
+                <div class="num">5</div>
+                <div class="txt"><strong>Affiliate shares their link or promo code.</strong> They can share the referral link (for bio, ads, DMs) or just tell their audience to enter the promo code at signup (e.g. <em>"Use code BRYCE for special rewards"</em>).</div>
+            </div>
+            <div class="flow-step">
+                <div class="num">6</div>
+                <div class="txt"><strong>New player signs up on CoinFrenzy.com.</strong> Either via the <code>?code=</code> link OR by entering the promo code during signup. <em>CoinFrenzy.com sends a webhook to frenzycreator.com with the player data</em>, linking them to the affiliate who owns that code.</div>
+            </div>
+            <div class="flow-step">
+                <div class="num">7</div>
+                <div class="txt"><strong>Player plays on CoinFrenzy.com.</strong> GGR accrues per player. CoinFrenzy.com calculates NGR as <code>GGR − (|GGR| × 0.25)</code>. The 25% deduction always works against the affiliate — reducing profit when positive, increasing loss when negative.</div>
+            </div>
+            <div class="flow-step">
+                <div class="num">8</div>
+                <div class="txt"><strong>Weekly: CoinFrenzy.com pushes NGR data</strong> for all referred players to our Supabase. One record per player per week.</div>
+            </div>
+            <div class="flow-step">
+                <div class="num">9</div>
+                <div class="txt"><strong>Admin reviews and triggers payout.</strong> The admin panel aggregates NGR per affiliate, calculates commission, and clicks "Pay". <em>frenzycreator.com calls <code>POST /affiliate/payout</code> to credit the affiliate's Lightning Bolt rewards on CoinFrenzy.com (claimable from the lightning icon at the top of the site).</em> If non-200, payout is not recorded.</div>
+            </div>
+
+            <pre><span class="c">// System overview — bidirectional API integration</span>
+
+<span class="s">CoinFrenzy.com</span>                          <span class="s">frenzycreator.com</span>
+┌────────────────────────┐              ┌──────────────────────────┐
+│                        │              │                          │
+│ 1. User creates acct   │←─<span class="k">GET verify</span>─│ 2. Affiliate registers   │
+│    → Username chosen   │              │    → Verifies username   │
+│                        │              │                          │
+│    Affiliate record    │←─<span class="k">POST aff</span>───│ 3. Admin approves        │
+│    created on main     │              │    → Syncs to main site  │
+│                        │              │                          │
+│    Promo code record   │←─<span class="k">POST code</span>──│ 4. Creates campaigns     │
+│    created on main     │              │    → Syncs promo codes   │
+│                        │              │                          │
+│ 6. Player signs up     │──<span class="k">webhook</span>───→│ Player record created     │
+│    via ?code= link     │              │                          │
+│    or promo code entry │              │                          │
+│                        │              │                          │
+│ 8. NGR accrues weekly  │──<span class="k">push</span>──────→│ NGR data stored           │
+│                        │              │                          │
+│ 9. Lightning Bolt cred │←─<span class="k">POST pay</span>──│ Admin clicks "Pay"        │
+│                        │              │                          │
+└────────────────────────┘              └──────────────────────────┘
+
+<span class="c">// CoinFrenzy Creator API (e.g. …/api/v1/frenzy-creator) — 8 endpoints:</span>
+<span class="c">//   GET  /user/{username}     — Verify username (proxy: GET /api/coinfrenzy/user/…)</span>
+<span class="c">//   POST /                    — Register affiliate (proxy: POST /api/coinfrenzy/affiliate)</span>
+<span class="c">//   PUT  /{id}                — Update affiliate</span>
+<span class="c">//   DEL  /{id}                — Remove affiliate</span>
+<span class="c">//   POST /promocode           — Create promo code</span>
+<span class="c">//   PUT  /promocode/{id}      — Update promo code</span>
+<span class="c">//   DEL  /promocode/{id}      — Delete promo code</span>
+<span class="c">//   POST /payout              — Credit SC to Lightning Bolt</span>
+<span class="c">//</span>
+<span class="c">// CoinFrenzy.com also:</span>
+<span class="c">//   - Handles ?code={promo_code} URL query parameter on site</span>
+<span class="c">//   - Accepts promo code input during signup</span>
+<span class="c">//   - Sends webhook to frenzycreator when a new player signs up</span>
+<span class="c">//   - Calculates NGR (GGR − 25% deduction) and pushes weekly to Supabase</span></pre>
+        </section>
+
+        <!-- CAMPAIGNS & PROMO CODES -->
+        <section class="doc-section" id="campaigns">
+            <h2>
+                <span class="icon" style="background: rgba(139,92,246,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                </span>
+                Campaigns & Promo Codes
+            </h2>
+
+            <div class="info-card red">
+                <h4 style="color: #ef4444;">Critical: How referral tracking works</h4>
+                <p>Affiliates do NOT get an auto-generated referral link at signup. Instead, they create <strong>campaigns</strong> on frenzycreator.com, each with a unique <strong>promo code</strong>. The promo code is the referral identifier — it powers both the link and the manual code entry at signup. CoinFrenzy.com must handle both methods.</p>
+            </div>
+
+            <h3>How Campaigns Work</h3>
+            <ol>
+                <li>Affiliate logs into frenzycreator.com and navigates to the <strong>Campaigns</strong> page</li>
+                <li>They create a campaign (e.g., name: "TikTok Bio", promo code: <code>BRYCE</code>)</li>
+                <li>The system generates a <strong>referral link</strong>: <code>coinfrenzy.com?code=bryce</code></li>
+                <li>The system also displays the <strong>promo code</strong>: <code>BRYCE</code></li>
+                <li>Promo codes are <strong>globally unique</strong> — no two affiliates can use the same code</li>
+                <li>Affiliates can create unlimited campaigns (one per platform, ad, page, etc.)</li>
+            </ol>
+
+            <h3>Referral Link Format</h3>
+            <pre><span class="c">// The referral link format (generated by frenzycreator.com)</span>
+https://coinfrenzy.com?code=<span class="k">{promo_code}</span>
+
+<span class="c">// Examples:</span>
+https://coinfrenzy.com?code=<span class="s">bryce</span>
+https://coinfrenzy.com?code=<span class="s">tiktok-vip</span>
+https://coinfrenzy.com?code=<span class="s">ig-story</span></pre>
+
+            <h3>Two Ways a Player Can Be Referred</h3>
+            <div class="info-card gold">
+                <h4>Method 1: Referral Link</h4>
+                <p>Player clicks <code>coinfrenzy.com?code=bryce</code>. CoinFrenzy.com reads the <code>?code=</code> route, extracts the promo code, stores it in a cookie/session, and attributes the signup to the affiliate who owns that code.</p>
+            </div>
+            <div class="info-card blue">
+                <h4 style="color: #3b82f6;">Method 2: Promo Code at Signup</h4>
+                <p>Player goes directly to coinfrenzy.com and enters promo code <code>BRYCE</code> in a field during signup. CoinFrenzy.com resolves the code to the affiliate. This is for affiliates who prefer saying <em>"use code BRYCE"</em> instead of sharing a link.</p>
+            </div>
+
+            <h3>How Promo Codes Are Synced to CoinFrenzy.com</h3>
+            <p>When an affiliate creates, updates, or deletes a campaign on frenzycreator.com, we call the CoinFrenzy API to keep the main site in sync:</p>
+            <ol>
+                <li><strong>Create:</strong> <code>POST https://dev2-cron.coinfrenzy.com/api/v1/frenzy-creator/promocode</code> — called when a new campaign is created. If non-200, the campaign is not saved.</li>
+                <li><strong>Update:</strong> <code>PUT https://dev2-cron.coinfrenzy.com/api/v1/frenzy-creator/promocode/{id}</code> — called when a campaign is edited.</li>
+                <li><strong>Delete:</strong> <code>DELETE https://dev2-cron.coinfrenzy.com/api/v1/frenzy-creator/promocode/{id}</code> — called when a campaign is removed.</li>
+            </ol>
+            <p>This means CoinFrenzy.com maintains its <strong>own copy</strong> of all promo codes and can resolve them locally — no need to query our Supabase.</p>
+
+            <h3>What CoinFrenzy.com Must Do</h3>
+            <ol>
+                <li><strong>Handle the <code>?code={code}</code> URL query parameter.</strong> When a user visits <code>coinfrenzy.com?code=bryce</code>, store the promo code <code>bryce</code> in a cookie or session so it persists through signup.</li>
+                <li><strong>Add a "Promo Code" input field on the signup page.</strong> Players can optionally enter a code. If the <code>?code=</code> cookie is present, auto-fill this field.</li>
+                <li><strong>Resolve the promo code to an affiliate.</strong> Look up the code in the local promo code records (synced from frenzycreator.com via the API).</li>
+                <li><strong>Send a webhook</strong> to frenzycreator.com when a player completes registration, including <code>promo_code_used</code> and <code>source</code> (see <a href="#player-reg" style="color: var(--gold);">Player Registration</a>).</li>
+            </ol>
+
+            <div class="info-card gold">
+                <h4>Promo Code Rules</h4>
+                <p>Promo codes are <strong>case-insensitive</strong> (stored lowercase, displayed uppercase). They contain only letters, numbers, and dashes. Max 30 characters. Uniqueness is enforced on frenzycreator.com — no two affiliates can create the same code.</p>
+            </div>
+        </section>
+
+        <!-- USER LINKING / VERIFICATION -->
+        <section class="doc-section" id="user-linking">
+            <h2>
+                <span class="icon" style="background: rgba(59,130,246,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+                </span>
+                Account Linking
+            </h2>
+            <p>When an affiliate registers on frenzycreator.com, they provide their exact CoinFrenzy username. This username is the bridge between both systems.</p>
+
+            <h3>Registration Flow</h3>
+            <ol>
+                <li>Affiliate enters their CoinFrenzy username on the frenzycreator.com signup form</li>
+                <li>frenzycreator.com calls <code>GET /affiliate/user/{username}</code> to verify the username exists on CoinFrenzy — if non-200, signup is blocked</li>
+                <li>frenzycreator.com stores this as <code>casino_referral_code</code> in the <code>users</code> table (status: pending)</li>
+                <li>Admin approves the affiliate → frenzycreator.com calls <code>POST /affiliate</code> to register them on CoinFrenzy's side — if non-200, approval does not proceed</li>
+                <li>After approval, the affiliate creates <strong>campaigns</strong> → each triggers <code>POST /affiliate/promocode</code> to sync the code to the main site</li>
+                <li>No referral link is auto-generated at signup — all links and promo codes come from campaigns</li>
+            </ol>
+
+            <h3>Supabase Database (frenzycreator.com backend)</h3>
+            <table>
+                <thead><tr><th>Table</th><th>Purpose</th><th>Who Writes</th></tr></thead>
+                <tbody>
+                    <tr><td><code>users</code></td><td>Affiliate accounts (name, email, status, rev share, username)</td><td>frenzycreator.com</td></tr>
+                    <tr><td><code>players</code></td><td>Referred players linked to affiliates</td><td>CoinFrenzy.com pushes</td></tr>
+                    <tr><td><code>ngr_data</code></td><td>Weekly GGR &amp; NGR snapshots per player</td><td>CoinFrenzy.com pushes</td></tr>
+                    <tr><td><code>payouts</code></td><td>Payout ledger</td><td>frenzycreator.com admin</td></tr>
+                    <tr><td><code>level2_relationships</code></td><td>Sub-affiliate (L2) relationships between affiliates</td><td>frenzycreator.com admin</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- VERIFY USER ID -->
+        <section class="doc-section" id="verify">
+            <h2>
+                <span class="icon" style="background: rgba(34,197,94,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </span>
+                Verify Username (Required)
+            </h2>
+            <p>When an affiliate creates an account on frenzycreator.com, we <strong>must</strong> verify that their CoinFrenzy username exists on the main site before proceeding. If this returns non-200, account creation is blocked.</p>
+
+            <h3>Endpoint (CoinFrenzy.com provides)</h3>
+            <div class="endpoint"><span class="mth get">GET</span><span class="pth">https://dev2-cron.coinfrenzy.com/api/v1/frenzy-creator/user/{username}</span></div>
+
+            <pre><span class="c">// Request (server-side proxy: GET /api/coinfrenzy/user/{username})</span>
+<span class="m">GET</span> <span class="u">https://dev2-cron.coinfrenzy.com/api/v1/frenzy-creator/user/coolcreator123</span>
+<span class="k">Authorization</span>: Bearer [CRON_API_KEY]
+<span class="k">X-Api-Key</span>: [CRON_API_KEY]
+
+<span class="c">// Success response (200) — username exists</span>
+{
+  <span class="k">"valid"</span>: <span class="s">true</span>,
+  <span class="k">"username"</span>: <span class="s">"coolcreator123"</span>
+}
+
+<span class="c">// Non-200 response — user doesn't exist or error</span>
+<span class="c">// → frenzycreator.com blocks account creation and shows error</span></pre>
+
+            <div class="info-card red">
+                <h4 style="color: #ef4444;">Required Gate</h4>
+                <p>This is NOT optional. frenzycreator.com calls this endpoint during affiliate signup. If the response is anything other than <code>200</code>, the affiliate account is <strong>not created</strong>. The user is shown an error telling them to verify their CoinFrenzy username.</p>
+            </div>
+        </section>
+
+        <!-- PLAYER REGISTRATION -->
+        <section class="doc-section" id="player-reg">
+            <h2>
+                <span class="icon" style="background: rgba(59,130,246,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+                </span>
+                Player Registration (Incoming Webhook)
+            </h2>
+            <p>When a new player signs up on coinfrenzy.com via an affiliate's <code>?code={code}</code> link or by entering a promo code during signup, <strong>CoinFrenzy.com sends a webhook to frenzycreator.com</strong> with the player data. frenzycreator.com then saves this to the Supabase <code>players</code> table.</p>
+
+            <div class="info-card gold">
+                <h4>Direction: CoinFrenzy.com → frenzycreator.com</h4>
+                <p>This is the reverse of most flows. CoinFrenzy.com initiates this call whenever a new player signs up via an affiliate code. CoinFrenzy already has the promo code records (synced via <code>POST /affiliate/promocode</code>) so it can resolve which affiliate the player belongs to.</p>
+            </div>
+
+            <h3>Expected Webhook Payload (CoinFrenzy sends this)</h3>
+            <pre><span class="c">// CoinFrenzy.com POSTs this to frenzycreator.com's webhook endpoint</span>
+<span class="c">// Endpoint URL: https://www.frenzycreator.com/api/webhook/player-registration</span>
+
+<span class="c">// Headers</span>
+<span class="k">Authorization</span>: Bearer [API_KEY]
+<span class="k">Content-Type</span>: application/json
+
+<span class="c">// Body (expected fields — exact schema TBD with CoinFrenzy dev)</span>
+{
+  <span class="k">"player_id"</span>: <span class="s">"player_abc123"</span>,        <span class="c">// Unique player ID from CoinFrenzy</span>
+  <span class="k">"player_name"</span>: <span class="s">"John Doe"</span>,            <span class="c">// Display name</span>
+  <span class="k">"player_email"</span>: <span class="s">"john@example.com"</span>,    <span class="c">// Player email</span>
+  <span class="k">"affiliate_username"</span>: <span class="s">"coolcreator123"</span>,  <span class="c">// Resolved from promo code on CoinFrenzy's side</span>
+  <span class="k">"affiliate_email"</span>: <span class="s">"aff@example.com"</span>,  <span class="c">// Resolved from promo code on CoinFrenzy's side</span>
+  <span class="k">"signup_date"</span>: <span class="s">"2026-03-22T00:00:00Z"</span>,
+  <span class="k">"status"</span>: <span class="s">"active"</span>,
+  <span class="k">"source"</span>: <span class="s">"REFERRAL_LINK"</span>,           <span class="c">// "REFERRAL_LINK" or "PROMO_CODE"</span>
+  <span class="k">"promo_code_used"</span>: <span class="s">"bryce"</span>             <span class="c">// The promo code (from ?code= URL or manual entry)</span>
+}</pre>
+
+            <div class="info-card blue">
+                <h4 style="color: #3b82f6;">How CoinFrenzy Resolves Promo Codes</h4>
+                <p>CoinFrenzy.com already has promo code records (synced via <code>POST /affiliate/promocode</code> when campaigns are created). When a player uses a code, CoinFrenzy looks it up in its own database — no need to query our Supabase.</p>
+            </div>
+
+            <div class="info-card blue">
+                <h4 style="color: #3b82f6;">Source Field</h4>
+                <p>Use <code>"REFERRAL_LINK"</code> when the player came via a <code>?code=</code> URL. Use <code>"PROMO_CODE"</code> when the player manually entered the code during signup. This helps affiliates understand which method is working better.</p>
+            </div>
+        </section>
+
+        <!-- NGR DATA -->
+        <section class="doc-section" id="ngr-data">
+            <h2>
+                <span class="icon" style="background: rgba(34,197,94,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </span>
+                NGR Data Feed (Weekly)
+            </h2>
+            <p>This is the core data integration. Every week, push Net Gaming Revenue data for every referred player who had activity.</p>
+
+            <div class="info-card green">
+                <h4 style="color: #22c55e;">What is NGR?</h4>
+                <p><strong>NGR = GGR − (|GGR| × 0.25)</strong></p>
+                <p style="margin-top:0.5rem;">GGR (Gross Gaming Revenue) = Purchases − Redemptions. The 25% deduction accounts for payment processing, fraud, provider revenue share, and licensing costs. Critically, <strong>the 25% is always subtracted from GGR based on the absolute value</strong> — this means:</p>
+                <ul style="margin-top:0.5rem;">
+                    <li><strong>Positive GGR (house won):</strong> 25% reduces the profit → NGR is lower → affiliate earns less commission</li>
+                    <li><strong>Negative GGR (player won):</strong> 25% increases the loss → NGR is more negative → larger negative carry-forward for the affiliate</li>
+                </ul>
+                <p style="margin-top:0.5rem;">This ensures CoinFrenzy is never absorbing losses that should reduce future affiliate payouts.</p>
+            </div>
+
+            <div class="endpoint"><span class="mth post">POST</span><span class="pth">Supabase: /rest/v1/ngr_data</span></div>
+
+            <pre><span class="m">POST</span> <span class="u">https://mziyopzamtlcncvriave.supabase.co/rest/v1/ngr_data</span>
+
+<span class="c">// Push an array — one record per player per week</span>
+[
+  {
+    <span class="k">"player_id"</span>: <span class="s">"player_abc123"</span>,
+    <span class="k">"player_email"</span>: <span class="s">"john@example.com"</span>,
+    <span class="k">"affiliate_email"</span>: <span class="s">"aff@example.com"</span>,
+    <span class="k">"affiliate_username"</span>: <span class="s">"coolcreator123"</span>,
+    <span class="k">"report_period"</span>: <span class="s">"2026-03-17_to_2026-03-23"</span>,
+    <span class="k">"report_month"</span>: <span class="s">"2026-03"</span>,
+    <span class="k">"purchase_amount"</span>: <span class="n">12500.00</span>,       <span class="c">// Total purchases (deposits/buys) in the period</span>
+    <span class="k">"redemption_amount"</span>: <span class="n">12172.67</span>,     <span class="c">// Total redemptions (withdrawals/cashouts) in the period</span>
+    <span class="k">"ggr_amount"</span>: <span class="n">327.33</span>,            <span class="c">// Raw GGR (Purchases − Redemptions)</span>
+    <span class="k">"ngr_amount"</span>: <span class="n">245.50</span>,            <span class="c">// GGR − (|GGR| × 0.25) — can be negative</span>
+    <span class="k">"commission_percent"</span>: <span class="n">10</span>,          <span class="c">// Affiliate's rev share % (from users.rev_share_l1)</span>
+    <span class="k">"commission_amount"</span>: <span class="n">24.55</span>,       <span class="c">// NGR × (commission_percent / 100)</span>
+    <span class="k">"created_at"</span>: <span class="s">"2026-03-24T00:00:00Z"</span>
+  }
+]</pre>
+
+            <div class="info-card" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.04);">
+                <h4 style="color: #22c55e;">Calculation on CoinFrenzy.com side</h4>
+<pre style="margin:0.75rem 0 0;padding:0.75rem;background:rgba(0,0,0,0.3);border-radius:8px;font-size:0.8rem;"><span class="c">// For each player in the reporting period:</span>
+GGR = Purchases − Redemptions
+NGR = GGR − (|GGR| × <span class="n">0.25</span>)
+
+<span class="c">// Example 1: House is profitable (player lost)</span>
+Purchases   = <span class="n">$12,500.00</span>
+Redemptions = <span class="n">$12,172.67</span>
+GGR         = $12,500 − $12,172.67 = <span class="s">+$327.33</span>
+NGR         = $327.33 − ($327.33 × 0.25) = $327.33 − $81.83 = <span class="s">+$245.50</span>  ← push this
+
+<span class="c">// Example 2: House lost (player won)</span>
+Purchases   = <span class="n">$500.00</span>
+Redemptions = <span class="n">$600.00</span>
+GGR         = $500 − $600 = <span class="n">−$100.00</span>
+NGR         = −$100 − ($100 × 0.25) = −$100 − $25 = <span class="n">−$125.00</span>  ← push this
+<span class="c">// Notice: The loss gets BIGGER (more negative) after the 25% deduction.</span>
+<span class="c">// This protects CoinFrenzy from absorbing costs on player wins.</span>
+
+<span class="c">// Simple rule:</span>
+<span class="c">// If GGR is positive  → NGR = GGR × 0.75  (house keeps less)</span>
+<span class="c">// If GGR is negative  → NGR = GGR × 1.25  (loss carried forward is larger)</span></pre>
+            </div>
+
+            <p><strong>Schedule:</strong> Every Monday at 00:00 UTC, covering the prior Monday–Sunday period.</p>
+        </section>
+
+        <!-- SC VAULT PAYOUT -->
+        <section class="doc-section" id="payout">
+            <h2>
+                <span class="icon" style="background: rgba(245,158,11,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                </span>
+                Lightning Bolt Payout
+            </h2>
+
+            <div class="info-card red">
+                <h4 style="color: #ef4444;">This endpoint must be built by CoinFrenzy.com</h4>
+                <p>When the admin clicks "Pay" on frenzycreator.com, we call a CoinFrenzy.com API endpoint that pushes SC (Sweepstakes Coin) to the affiliate's <strong>Lightning Bolt</strong> rewards balance — the lightning icon at the top of CoinFrenzy.com where players claim bonuses. SC is 1:1 USD equivalent. This is how affiliates get paid — they claim it from the Lightning Bolt directly inside their CoinFrenzy account.</p>
+            </div>
+
+            <h3>Endpoint</h3>
+            <div class="endpoint"><span class="mth post">POST</span><span class="pth">https://dev2-cron.coinfrenzy.com/api/v1/frenzy-creator/payout</span></div>
+
+            <pre><span class="m">POST</span> <span class="u">https://dev2-cron.coinfrenzy.com/api/v1/frenzy-creator/payout</span>
+
+<span class="c">// Headers (server-side proxy: POST /api/coinfrenzy/payout)</span>
+<span class="k">Authorization</span>: Bearer [CRON_API_KEY]
+<span class="k">X-Api-Key</span>: [CRON_API_KEY]
+<span class="k">Content-Type</span>: application/json
+
+<span class="c">// Body</span>
+{
+  <span class="k">"username"</span>: <span class="s">"coolcreator123"</span>,      <span class="c">// Affiliate's CoinFrenzy username</span>
+  <span class="k">"amount_sc"</span>: <span class="n">125.50</span>,              <span class="c">// Amount in SC (1:1 USD)</span>
+  <span class="k">"reference_id"</span>: <span class="s">"payout_17..."</span>,  <span class="c">// Unique payout ID from our system (for deduplication)</span>
+  <span class="k">"description"</span>: <span class="s">"Frenzy Creator affiliate payout — Week of Mar 17-23, 2026"</span>
+}
+
+<span class="c">// Expected success response</span>
+{
+  <span class="k">"success"</span>: <span class="s">true</span>,
+  <span class="k">"transaction_id"</span>: <span class="s">"txn_abc123"</span>,
+  <span class="k">"new_lightning_balance"</span>: <span class="n">1250.00</span>
+}
+
+<span class="c">// Error response</span>
+{
+  <span class="k">"success"</span>: <span class="s">false</span>,
+  <span class="k">"error"</span>: <span class="s">"User not found"</span>
+}</pre>
+
+            <h3>Payout Flow</h3>
+            <ol>
+                <li>Admin opens Payouts tab on frenzycreator.com/admin</li>
+                <li>System shows each affiliate's unpaid balance (calculated from NGR data)</li>
+                <li>Admin clicks "Send Payout" for one affiliate (or "Send All Payouts")</li>
+                <li>frenzycreator.com calls <code>POST /api/coinfrenzy/payout</code> (proxied to <code>…/frenzy-creator/payout</code>) with the amount</li>
+                <li>On success: payout is recorded in Supabase <code>payouts</code> table, balance resets</li>
+                <li>On failure: admin sees error, nothing is recorded, balance unchanged</li>
+            </ol>
+
+            <h3>Bulk Payout</h3>
+            <p>When admin clicks "Send All Payouts", frenzycreator.com will call the <code>/affiliate/payout</code> endpoint once per affiliate, sequentially. Each call is independent — if one fails, the others still succeed.</p>
+
+            <div class="info-card gold">
+                <h4>Deduplication</h4>
+                <p>The <code>reference_id</code> field prevents double-payouts. If the same reference_id is sent twice, CoinFrenzy.com should reject the second call. Use our payout record ID as the reference.</p>
+            </div>
+        </section>
+
+        <!-- PAYOUT CALCULATION -->
+        <section class="doc-section" id="calculation">
+            <h2>
+                <span class="icon" style="background: rgba(99,102,241,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </span>
+                Payout Calculation (Our Side)
+            </h2>
+            <p>This runs on frenzycreator.com — <strong>CoinFrenzy.com does not need to implement this</strong>. Documented for reference.</p>
+
+            <div class="info-card red">
+                <h4 style="color: #ef4444;">Cross-Player Netting</h4>
+                <p>An affiliate's payout is based on the <strong>combined NGR of ALL their referred players</strong>. If Player A is +$500 and Player B is −$300, the affiliate's net NGR is $200. Commission is calculated on $200.</p>
+            </div>
+
+            <pre><span class="c">// Example: Affiliate coolcreator123 has 3 players this week</span>
+<span class="c">// NGR already calculated by CoinFrenzy.com: GGR − (|GGR| × 0.25)</span>
+
+Player A: GGR <span class="s">+$666.67</span>  → NGR <span class="s">+$500.00</span>   <span class="c">// $666.67 × 0.75</span>
+Player B: GGR <span class="n">-$240.00</span>  → NGR <span class="n">-$300.00</span>   <span class="c">// -$240 × 1.25 (loss amplified)</span>
+Player C: GGR <span class="s">+$266.67</span>  → NGR <span class="s">+$200.00</span>   <span class="c">// $266.67 × 0.75</span>
+
+Net NGR = $500 + (-$300) + $200 = <span class="s">$400</span>
+Commission (10% L1 rev share) = $400 × 0.10 = <span class="k">$40.00 SC to Lightning Bolt</span>
+<span class="c">// Note: 10% is the default L1 rate, stored per-affiliate in users.rev_share_l1</span>
+<span class="c">// If L2 is enabled, the parent affiliate also earns rev_share_l2 on sub-affiliate NGR</span>
+
+<span class="c">// If net NGR is negative:</span>
+Net NGR = -$200  →  Payout = <span class="n">$0</span>, carry -$200 to next period
+<span class="c">// Next week: net NGR $350, adjusted = $350 - $200 = $150</span>
+<span class="c">// Commission = $150 × 0.10 = $15.00</span></pre>
+        </section>
+
+        <!-- SCHEDULE -->
+        <section class="doc-section" id="schedule">
+            <h2>
+                <span class="icon" style="background: rgba(236,72,153,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </span>
+                Data Push Schedule
+            </h2>
+            <table>
+                <thead><tr><th>Event</th><th>Frequency</th><th>When</th><th>Direction</th></tr></thead>
+                <tbody>
+                    <tr><td>Username Verification</td><td>Real-time</td><td>During affiliate signup</td><td>frenzycreator → CoinFrenzy API</td></tr>
+                    <tr><td>Affiliate Sync</td><td>Real-time</td><td>On approval / update / delete</td><td>frenzycreator → CoinFrenzy API</td></tr>
+                    <tr><td>Promo Code Sync</td><td>Real-time</td><td>On campaign create / update / delete</td><td>frenzycreator → CoinFrenzy API</td></tr>
+                    <tr><td>Player Registration</td><td>Real-time</td><td>On signup via ?code= link or promo code</td><td>CoinFrenzy → frenzycreator (webhook)</td></tr>
+                    <tr><td>NGR Report</td><td>Weekly</td><td>Monday 00:00 UTC</td><td>CoinFrenzy → Supabase</td></tr>
+                    <tr><td>Player Status Update</td><td>As needed</td><td>Player banned/inactive</td><td>CoinFrenzy → Supabase</td></tr>
+                    <tr><td>Lightning Bolt Payout</td><td>Weekly</td><td>Admin triggers payout</td><td>frenzycreator → CoinFrenzy API</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- ALL ENDPOINTS -->
+        <section class="doc-section" id="endpoints">
+            <h2>
+                <span class="icon" style="background: rgba(236,72,153,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                </span>
+                Complete Endpoint Reference
+            </h2>
+
+            <h3>Supabase (frenzycreator.com backend — CoinFrenzy pushes NGR data to)</h3>
+            <p>Base URL: <code>https://mziyopzamtlcncvriave.supabase.co/rest/v1</code></p>
+            <pre><span class="c">// Auth headers for ALL Supabase requests</span>
+<span class="k">apikey</span>: [SERVICE_ROLE_KEY]
+<span class="k">Authorization</span>: Bearer [SERVICE_ROLE_KEY]
+<span class="k">Content-Type</span>: application/json</pre>
+
+            <table>
+                <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+                <tbody>
+                    <tr><td><code>POST</code></td><td><code>/ngr_data</code></td><td>Push weekly NGR data (array)</td></tr>
+                    <tr><td><code>PATCH</code></td><td><code>/players?player_id=eq.{id}</code></td><td>Update player status</td></tr>
+                </tbody>
+            </table>
+            <div class="info-card blue">
+                <h4 style="color: #3b82f6;">Player registration no longer goes directly to Supabase</h4>
+                <p>Player registrations are now handled via webhook (CoinFrenzy → frenzycreator.com). frenzycreator.com saves the data to the <code>players</code> table internally. CoinFrenzy only needs to push NGR data and player status updates directly to Supabase.</p>
+            </div>
+
+            <h3>CoinFrenzy Creator Program API (CoinFrenzy exposes — frenzycreator.com calls)</h3>
+            <p>Staging base URL: <code>https://dev2-cron.coinfrenzy.com/api/v1/frenzy-creator</code>. Paths below are relative to that base. Production base URL TBD.</p>
+            <p>Browser and admin UI call same-origin <strong>proxies</strong> under <code>/api/coinfrenzy/…</code>; the Vercel server forwards to the Creator API using <code>COINFRENZY_CRON_API_KEY</code> (optional <code>COINFRENZY_CRON_BASE_URL</code> to override the default base).</p>
+            <pre><span class="c">// Auth headers the server sends to dev2-cron (do not expose the key to browsers)</span>
+<span class="k">Authorization</span>: Bearer [CRON_API_KEY]
+<span class="k">X-Api-Key</span>: [CRON_API_KEY]
+<span class="k">Content-Type</span>: application/json</pre>
+
+            <table>
+                <thead><tr><th>#</th><th>Method</th><th>Upstream path</th><th>frenzycreator proxy</th><th>Purpose</th><th>When Called</th></tr></thead>
+                <tbody>
+                    <tr><td>1</td><td><code>GET</code></td><td><code>/user/{username}</code></td><td><code>GET /api/coinfrenzy/user/{username}</code></td><td>Verify CoinFrenzy username exists</td><td>During affiliate signup on frenzycreator.com</td></tr>
+                    <tr><td>2</td><td><code>POST</code></td><td><code>/</code></td><td><code>POST /api/coinfrenzy/affiliate</code></td><td>Register affiliate</td><td>When affiliate is <strong>approved</strong> by admin</td></tr>
+                    <tr><td>3</td><td><code>PUT</code></td><td><code>/{id}</code></td><td><code>PUT /api/coinfrenzy/affiliate/{id}</code></td><td>Update affiliate</td><td>When affiliate status/details change</td></tr>
+                    <tr><td>4</td><td><code>DELETE</code></td><td><code>/{id}</code></td><td><code>DELETE /api/coinfrenzy/affiliate/{id}</code></td><td>Remove affiliate</td><td>When affiliate is banned/deleted</td></tr>
+                    <tr><td>5</td><td><code>POST</code></td><td><code>/promocode</code></td><td><code>POST /api/coinfrenzy/promocode</code></td><td>Create promo code</td><td>When affiliate creates a campaign</td></tr>
+                    <tr><td>6</td><td><code>PUT</code></td><td><code>/promocode/{id}</code></td><td><code>PUT /api/coinfrenzy/promocode/{id}</code></td><td>Update promo code</td><td>When a campaign is edited</td></tr>
+                    <tr><td>7</td><td><code>DELETE</code></td><td><code>/promocode/{id}</code></td><td><code>DELETE /api/coinfrenzy/promocode/{id}</code></td><td>Delete promo code</td><td>When a campaign is deleted</td></tr>
+                    <tr><td>8</td><td><code>POST</code></td><td><code>/payout</code></td><td><code>POST /api/coinfrenzy/payout</code></td><td>Credit SC to affiliate's Lightning Bolt</td><td>When admin triggers a payout (weekly)</td></tr>
+                </tbody>
+            </table>
+
+            <div class="info-card red">
+                <h4 style="color: #ef4444;">Critical: Non-200 = Action Does Not Proceed</h4>
+                <p>If <strong>any</strong> of these API calls returns a status other than <code>200</code>, the corresponding action on frenzycreator.com <strong>must not proceed</strong>. Examples: if <code>POST /api/v1/frenzy-creator/</code> returns 500, the affiliate is NOT approved. If <code>POST …/promocode</code> returns 409, the campaign is NOT created. The user sees an error message and can retry.</p>
+            </div>
+
+            <h3>Webhook: CoinFrenzy.com → frenzycreator.com (CoinFrenzy sends to us)</h3>
+            <table>
+                <thead><tr><th>Event</th><th>Direction</th><th>Purpose</th></tr></thead>
+                <tbody>
+                    <tr><td>New player signup</td><td>CoinFrenzy → frenzycreator.com</td><td>When a new user signs up via <code>?code=</code> link or promo code, CoinFrenzy sends player data to frenzycreator.com to associate the player with the affiliate</td></tr>
+                </tbody>
+            </table>
+
+            <div class="info-card blue">
+                <h4 style="color: #3b82f6;">Webhook Endpoint (Live)</h4>
+                <p><code>POST https://www.frenzycreator.com/api/webhook/player-registration</code><br>Secured with the shared API key in the <code>Authorization: Bearer [API_KEY]</code> header. Returns <code>200</code> on success, <code>401</code> if unauthorized, <code>400</code> if missing required fields.</p>
+            </div>
+        </section>
+
+        <!-- TABLE SCHEMAS -->
+        <section class="doc-section" id="schemas">
+            <h2>
+                <span class="icon" style="background: rgba(139,92,246,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                </span>
+                Supabase Table Schemas
+            </h2>
+            <p>Exact column definitions for all tables CoinFrenzy.com writes to. Primary keys, types, and constraints.</p>
+
+            <h3><code>players</code> — Referred Players</h3>
+            <table>
+                <thead><tr><th>Column</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+                <tbody>
+                    <tr><td><code>id</code></td><td>uuid</td><td>Auto</td><td>Auto-generated PK by Supabase</td></tr>
+                    <tr><td><code>player_id</code></td><td>text</td><td>Yes</td><td>Unique player ID from CoinFrenzy (your internal ID)</td></tr>
+                    <tr><td><code>player_name</code></td><td>text</td><td>Yes</td><td>Display name</td></tr>
+                    <tr><td><code>player_email</code></td><td>text</td><td>Yes</td><td>Player's email</td></tr>
+                    <tr><td><code>affiliate_username</code></td><td>text</td><td>Yes</td><td>The CoinFrenzy username of the affiliate (looked up from promo code)</td></tr>
+                    <tr><td><code>affiliate_email</code></td><td>text</td><td>Yes</td><td>Affiliate's email (looked up from promo code)</td></tr>
+                    <tr><td><code>signup_date</code></td><td>timestamptz</td><td>Yes</td><td>When the player created their account</td></tr>
+                    <tr><td><code>status</code></td><td>text</td><td>Yes</td><td><code>active</code>, <code>inactive</code>, or <code>banned</code></td></tr>
+                    <tr><td><code>source</code></td><td>text</td><td>Yes</td><td><code>REFERRAL_LINK</code> (via ?code= URL) or <code>PROMO_CODE</code> (manual entry at signup)</td></tr>
+                    <tr><td><code>promo_code_used</code></td><td>text</td><td>Yes</td><td>The promo code that referred this player (from ?code= URL or signup form)</td></tr>
+                    <tr><td><code>created_at</code></td><td>timestamptz</td><td>Auto</td><td>Auto-set by Supabase</td></tr>
+                </tbody>
+            </table>
+
+            <h3><code>ngr_data</code> — Weekly Revenue Snapshots</h3>
+            <table>
+                <thead><tr><th>Column</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+                <tbody>
+                    <tr><td><code>id</code></td><td>uuid</td><td>Auto</td><td>Auto-generated PK</td></tr>
+                    <tr><td><code>player_id</code></td><td>text</td><td>Yes</td><td>Must match a <code>player_id</code> in <code>players</code></td></tr>
+                    <tr><td><code>affiliate_email</code></td><td>text</td><td>Yes</td><td>Affiliate's email</td></tr>
+                    <tr><td><code>affiliate_username</code></td><td>text</td><td>Yes</td><td>CoinFrenzy username of the affiliate</td></tr>
+                    <tr><td><code>report_period</code></td><td>text</td><td>Yes</td><td>Format: <code>YYYY-MM-DD_to_YYYY-MM-DD</code></td></tr>
+                    <tr><td><code>report_month</code></td><td>text</td><td>Yes</td><td>Format: <code>YYYY-MM</code></td></tr>
+                    <tr><td><code>purchase_amount</code></td><td>numeric</td><td>Yes</td><td>Total purchases (deposits/buys) for this player in the period</td></tr>
+                    <tr><td><code>redemption_amount</code></td><td>numeric</td><td>Yes</td><td>Total redemptions (withdrawals/cashouts) for this player in the period</td></tr>
+                    <tr><td><code>ggr_amount</code></td><td>numeric</td><td>Yes</td><td>Raw GGR = purchase_amount − redemption_amount (can be negative)</td></tr>
+                    <tr><td><code>ngr_amount</code></td><td>numeric</td><td>Yes</td><td>GGR − (|GGR| × 0.25). Positive GGR × 0.75, negative GGR × 1.25</td></tr>
+                    <tr><td><code>player_email</code></td><td>text</td><td>Yes</td><td>Player's email address</td></tr>
+                    <tr><td><code>commission_percent</code></td><td>numeric</td><td>Yes</td><td>The affiliate's rev share % applied (e.g. <code>10</code>)</td></tr>
+                    <tr><td><code>commission_amount</code></td><td>numeric</td><td>Yes</td><td>NGR × (commission_percent / 100)</td></tr>
+                    <tr><td><code>created_at</code></td><td>timestamptz</td><td>Yes</td><td>When this report was generated</td></tr>
+                </tbody>
+            </table>
+
+            <h3><code>users</code> — Affiliate Accounts (read-only for CoinFrenzy)</h3>
+            <table>
+                <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+                <tbody>
+                    <tr><td><code>email</code></td><td>text</td><td>PK — affiliate's email</td></tr>
+                    <tr><td><code>casino_referral_code</code></td><td>text</td><td>The CoinFrenzy username they entered during signup</td></tr>
+                    <tr><td><code>fullname</code></td><td>text</td><td>Affiliate's display name</td></tr>
+                    <tr><td><code>status</code></td><td>text</td><td><code>pending</code>, <code>approved</code>, <code>denied</code></td></tr>
+                    <tr><td><code>rev_share_l1</code></td><td>numeric</td><td>L1 commission rate (default 10%). Per-affiliate, set by admin</td></tr>
+                    <tr><td><code>rev_share_l2</code></td><td>numeric</td><td>L2 sub-affiliate commission rate, if L2 is enabled</td></tr>
+                    <tr><td><code>l2_enabled</code></td><td>boolean</td><td>Whether this affiliate has sub-affiliates (Level 2)</td></tr>
+                </tbody>
+            </table>
+            <div class="info-card blue">
+                <h4 style="color: #3b82f6;">CoinFrenzy.com does NOT need to read this table</h4>
+                <p>Since affiliate and promo code data is now synced to CoinFrenzy.com via API calls (<code>POST /affiliate</code>, <code>POST /affiliate/promocode</code>), CoinFrenzy maintains its own records. This table is for frenzycreator.com's internal use only.</p>
+            </div>
+
+            <h3><code>payouts</code> — Payout Ledger (read-only for CoinFrenzy)</h3>
+            <table>
+                <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+                <tbody>
+                    <tr><td><code>id</code></td><td>uuid</td><td>Auto-generated PK — use as <code>reference_id</code> for the Lightning Bolt credit call</td></tr>
+                    <tr><td><code>affiliate_email</code></td><td>text</td><td>Who got paid</td></tr>
+                    <tr><td><code>amount</code></td><td>numeric</td><td>Amount in SC (1:1 USD)</td></tr>
+                    <tr><td><code>status</code></td><td>text</td><td><code>paid</code></td></tr>
+                    <tr><td><code>paid_at</code></td><td>timestamptz</td><td>When payout was sent</td></tr>
+                    <tr><td><code>notes</code></td><td>text</td><td>Optional admin notes for the payout</td></tr>
+                    <tr><td><code>method</code></td><td>text</td><td>Payout method (e.g. Lightning Bolt)</td></tr>
+                </tbody>
+            </table>
+
+            <h3><code>level2_relationships</code> — Sub-Affiliate Mapping (read-only for CoinFrenzy)</h3>
+            <table>
+                <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+                <tbody>
+                    <tr><td><code>parent_affiliate</code></td><td>text</td><td>Email of the parent (L1) affiliate</td></tr>
+                    <tr><td><code>sub_affiliate</code></td><td>text</td><td>Email of the sub (L2) affiliate</td></tr>
+                </tbody>
+            </table>
+            <div class="info-card blue">
+                <h4 style="color: #3b82f6;">Level 2 Sub-Affiliates</h4>
+                <p>Some affiliates can earn a secondary commission on their sub-affiliates' referred players. When L2 is enabled for a parent affiliate, they earn their <code>rev_share_l2</code> rate on the NGR generated by all players referred by their sub-affiliates. This is managed entirely on our side — CoinFrenzy.com does not need to do anything different for L2 players.</p>
+            </div>
+        </section>
+
+        <!-- ERROR HANDLING -->
+        <section class="doc-section" id="errors">
+            <h2>
+                <span class="icon" style="background: rgba(239,68,68,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </span>
+                Error Handling &amp; Retries
+            </h2>
+            <p>How each system should handle failures, plus expected HTTP status codes.</p>
+
+            <h3>HTTP Status Codes — CoinFrenzy.com Endpoints</h3>
+            <table>
+                <thead><tr><th>Status</th><th>Meaning</th><th>Action</th></tr></thead>
+                <tbody>
+                    <tr><td><code>200</code></td><td>Success</td><td>Process the response body</td></tr>
+                    <tr><td><code>400</code></td><td>Bad request (invalid payload)</td><td>Fix payload and retry</td></tr>
+                    <tr><td><code>401</code></td><td>Invalid or missing API key</td><td>Check <code>Authorization</code> header</td></tr>
+                    <tr><td><code>404</code></td><td>User not found</td><td>Verify username exists</td></tr>
+                    <tr><td><code>409</code></td><td>Duplicate <code>reference_id</code></td><td>Payout already processed — do not retry</td></tr>
+                    <tr><td><code>429</code></td><td>Rate limited</td><td>Back off and retry after <code>Retry-After</code> header</td></tr>
+                    <tr><td><code>500</code></td><td>Server error</td><td>Retry with exponential backoff</td></tr>
+                </tbody>
+            </table>
+
+            <h3>HTTP Status Codes — Supabase</h3>
+            <table>
+                <thead><tr><th>Status</th><th>Meaning</th><th>Action</th></tr></thead>
+                <tbody>
+                    <tr><td><code>201</code></td><td>Created (with <code>Prefer: return=minimal</code>)</td><td>Success — record inserted</td></tr>
+                    <tr><td><code>200</code></td><td>OK (with <code>Prefer: return=representation</code>)</td><td>Success — returns inserted data</td></tr>
+                    <tr><td><code>401</code></td><td>Bad API key</td><td>Check <code>apikey</code> and <code>Authorization</code> headers</td></tr>
+                    <tr><td><code>409</code></td><td>Unique constraint violation</td><td>Record already exists (e.g. duplicate <code>player_id</code>)</td></tr>
+                    <tr><td><code>500</code></td><td>Server error</td><td>Retry with exponential backoff</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Retry Strategy</h3>
+            <div class="info-card gold">
+                <h4>Recommended Approach</h4>
+                <p>For any <strong>5xx</strong> error or network timeout, retry up to <strong>3 times</strong> with exponential backoff: wait 1s, then 4s, then 16s. For <strong>4xx</strong> errors, do NOT retry — fix the request first. For <strong>409</strong> on the Lightning Bolt credit call, treat as success (payout was already processed).</p>
+            </div>
+
+<pre><span class="c">// Pseudocode: retry with exponential backoff</span>
+<span class="k">function</span> postWithRetry(url, body, maxRetries = <span class="n">3</span>) {
+  <span class="k">for</span> (let attempt = <span class="n">0</span>; attempt < maxRetries; attempt++) {
+    <span class="k">const</span> res = <span class="k">await</span> fetch(url, { method: <span class="s">'POST'</span>, body, headers });
+    
+    <span class="k">if</span> (res.status === <span class="n">409</span>) <span class="k">return</span> { <span class="s">alreadyProcessed</span>: <span class="s">true</span> };
+    <span class="k">if</span> (res.ok) <span class="k">return</span> <span class="k">await</span> res.json();
+    <span class="k">if</span> (res.status >= <span class="n">400</span> && res.status < <span class="n">500</span>) <span class="k">throw</span> <span class="k">new</span> Error(<span class="s">'Client error'</span>);
+    
+    <span class="c">// 5xx → backoff and retry</span>
+    <span class="k">await</span> sleep(<span class="n">1000</span> * Math.pow(<span class="n">4</span>, attempt));
+  }
+  <span class="k">throw</span> <span class="k">new</span> Error(<span class="s">'Max retries exceeded'</span>);
+}</pre>
+
+            <h3>Idempotency</h3>
+            <ul>
+                <li><strong>Lightning Bolt credit:</strong> The <code>reference_id</code> field ensures idempotency. If the same <code>reference_id</code> is sent twice, reject with <code>409</code>.</li>
+                <li><strong>Player registration:</strong> If a player with the same <code>player_id</code> already exists, Supabase returns <code>409</code>. Treat as success.</li>
+                <li><strong>NGR data:</strong> Each push should cover a unique <code>report_period</code> + <code>player_id</code> combination. If duplicated, Supabase will insert another row. Consider adding a unique constraint on <code>(player_id, report_period)</code> to prevent accidental duplicates.</li>
+            </ul>
+        </section>
+
+        <!-- SECURITY -->
+        <section class="doc-section" id="security">
+            <h2>
+                <span class="icon" style="background: rgba(239,68,68,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </span>
+                Security
+            </h2>
+            <ul>
+                <li><strong>Supabase Service Role Key:</strong> provided separately — NEVER expose in client-side code. This key bypasses RLS.</li>
+                <li><strong>CoinFrenzy API Key (Security Token):</strong> Used in <code>Authorization: Bearer [API_KEY]</code> header for all 8 CoinFrenzy API endpoints. Provided by CoinFrenzy dev team.</li>
+                <li>All requests must use <strong>HTTPS</strong></li>
+                <li>All CoinFrenzy API endpoints must validate the API key</li>
+                <li>The <code>/affiliate/payout</code> endpoint must check <code>reference_id</code> for deduplication</li>
+                <li>The incoming webhook from CoinFrenzy should also be authenticated with the shared API key</li>
+                <li>Consider IP allowlisting for the Supabase service role key</li>
+            </ul>
+
+            <h3>Rate Limiting</h3>
+            <div class="info-card blue">
+                <h4 style="color: #3b82f6;">Recommended Limits</h4>
+                <p><strong>Supabase:</strong> No rate limit concern for weekly batch pushes (typically &lt;1000 records). For real-time player registration, expect single-digit requests per second — well within limits.</p>
+                <p style="margin-top: 0.5rem;"><strong>CoinFrenzy.com endpoints:</strong> Implement rate limiting on all 8 endpoints. Bulk payouts via <code>/affiliate/payout</code> are sent sequentially (one per affiliate).</p>
+            </div>
+
+            <h3>CORS</h3>
+            <p>All CoinFrenzy API endpoints will be called <strong>server-to-server</strong> or via authenticated client-side calls. CORS headers should allow requests from <code>frenzycreator.com</code> and <code>www.frenzycreator.com</code> origins.</p>
+        </section>
+
+        <!-- TESTING -->
+        <section class="doc-section" id="testing">
+            <h2>
+                <span class="icon" style="background: rgba(34,197,94,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </span>
+                Testing Checklist
+            </h2>
+            <ol>
+                <li>Create a test account on CoinFrenzy.com → note the username</li>
+                <li>Register on frenzycreator.com using that username → verify <code>GET /affiliate/user/{username}</code> returns 200</li>
+                <li>Approve affiliate on admin panel → verify <code>POST /affiliate</code> returns 200</li>
+                <li>Create a campaign → verify <code>POST /affiliate/promocode</code> returns 200 and promo code is synced</li>
+                <li>Test <strong>Method 1</strong>: Open the <code>?code={code}</code> link in an incognito browser → sign up a test player</li>
+                <li>Test <strong>Method 2</strong>: Go to coinfrenzy.com directly → enter the promo code during signup</li>
+                <li>Verify CoinFrenzy.com sent the player webhook → player appears in frenzycreator.com</li>
+                <li>Push test NGR data (both positive and negative amounts)</li>
+                <li>Check frenzycreator.com/admin → verify player appears, NGR shows correctly</li>
+                <li>Trigger a test payout via <code>POST /affiliate/payout</code> → verify SC credited</li>
+                <li>Try the same payout again → verify deduplication rejects it</li>
+                <li>Test non-200 handling: use invalid data and confirm actions are blocked</li>
+            </ol>
+
+            <div class="info-card gold">
+                <h4>Questions / Support</h4>
+                <p>Reach out to the Frenzy Creator team for: Supabase service role key, shared API key negotiation, or integration support.</p>
+            </div>
+        </section>
+        <!-- GO-LIVE CHECKLIST -->
+        <section class="doc-section" id="checklist">
+            <h2>
+                <span class="icon" style="background: rgba(212,168,85,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4a855" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </span>
+                Go-Live Integration Checklist
+            </h2>
+            <p>What needs to happen before we go live with real users. Items marked <strong style="color: #ef4444;">CF</strong> are CoinFrenzy.com tasks. Items marked <strong style="color: #22c55e;">FC</strong> are frenzycreator.com tasks.</p>
+
+            <h3>Phase 1: Exchange Credentials</h3>
+            <ol>
+                <li><strong style="color: #22c55e;">FC</strong> Provide Supabase service role key to CoinFrenzy dev team (securely — not over email)</li>
+                <li><strong style="color: #ef4444;">CF</strong> + <strong style="color: #22c55e;">FC</strong> Agree on a shared API key for the Lightning Bolt credit endpoint and verify endpoints</li>
+                <li><strong style="color: #ef4444;">CF</strong> Confirm the production Creator Program base URL (staging: <code>https://dev2-cron.coinfrenzy.com/api/v1/frenzy-creator</code>)</li>
+                <li><strong style="color: #ef4444;">CF</strong> Confirm the username format (alphanumeric, case-sensitivity, etc.)</li>
+            </ol>
+
+            <h3>Phase 2: CoinFrenzy.com Builds (8 API Endpoints)</h3>
+            <ol>
+                <li><strong style="color: #ef4444;">CF</strong> Build <code>GET /affiliate/user/{username}</code> — verify username exists</li>
+                <li><strong style="color: #ef4444;">CF</strong> Build <code>POST /affiliate</code> — register approved affiliate on main site</li>
+                <li><strong style="color: #ef4444;">CF</strong> Build <code>PUT /affiliate/{id}</code> — update affiliate details</li>
+                <li><strong style="color: #ef4444;">CF</strong> Build <code>DELETE /affiliate/{id}</code> — remove affiliate</li>
+                <li><strong style="color: #ef4444;">CF</strong> Build <code>POST /affiliate/promocode</code> — create promo code on main site</li>
+                <li><strong style="color: #ef4444;">CF</strong> Build <code>PUT /affiliate/promocode/{id}</code> — update promo code</li>
+                <li><strong style="color: #ef4444;">CF</strong> Build <code>DELETE /affiliate/promocode/{id}</code> — delete promo code</li>
+                <li><strong style="color: #ef4444;">CF</strong> Build <code>POST /affiliate/payout</code> — credit SC to affiliate's Lightning Bolt rewards (with deduplication)</li>
+                <li><strong style="color: #ef4444;">CF</strong> Implement <code>?code={code}</code> URL query parameter handling (store promo code in cookie/session)</li>
+                <li><strong style="color: #ef4444;">CF</strong> Add "Promo Code" input field on the signup form</li>
+                <li><strong style="color: #ef4444;">CF</strong> Build webhook to POST new player data to frenzycreator.com on signup</li>
+                <li><strong style="color: #ef4444;">CF</strong> Build weekly NGR calculation pipeline and Supabase push</li>
+            </ol>
+
+            <h3>Phase 2b: frenzycreator.com Integrations</h3>
+            <ol>
+                <li><strong style="color: #22c55e;">FC</strong> Call <code>GET /affiliate/user/{username}</code> during affiliate signup — block if non-200</li>
+                <li><strong style="color: #22c55e;">FC</strong> Call <code>POST /affiliate</code> when admin approves affiliate — block if non-200</li>
+                <li><strong style="color: #22c55e;">FC</strong> Call <code>POST/PUT/DELETE /affiliate/promocode</code> on campaign CUD — block if non-200</li>
+                <li><strong style="color: #22c55e;">FC</strong> Call <code>POST /affiliate/payout</code> in admin payout flow — block if non-200</li>
+                <li><strong style="color: #22c55e;">FC</strong> Expose webhook endpoint for incoming player registrations from CoinFrenzy</li>
+            </ol>
+
+            <h3>Phase 3: Test End-to-End</h3>
+            <ol>
+                <li>Create test affiliate account on both platforms, create a campaign</li>
+                <li>Register a test player via <code>?code=</code> link and separately via promo code entry</li>
+                <li>Push test NGR data (positive and negative)</li>
+                <li>Verify admin panel shows correct balances</li>
+                <li>Trigger test payout and confirm Lightning Bolt credit</li>
+                <li>Test deduplication (same payout twice)</li>
+                <li>Test edge cases: negative net NGR, banned player, invalid username</li>
+            </ol>
+
+            <h3>Phase 4: Go Live</h3>
+            <ol>
+                <li>Switch from test credentials to production</li>
+                <li>Enable real-time player registration push</li>
+                <li>Schedule first Monday 00:00 UTC NGR data push</li>
+                <li>Monitor first week of data for accuracy</li>
+                <li>Trigger first real payout cycle</li>
+            </ol>
+
+            <div class="info-card red">
+                <h4 style="color: #ef4444;">What We Need From CoinFrenzy.com to Proceed</h4>
+                <ul style="margin-top: 0.75rem;">
+                    <li>The production Creator Program base URL (staging is <code>https://dev2-cron.coinfrenzy.com/api/v1/frenzy-creator</code>)</li>
+                    <li>The API key / security token for authentication</li>
+                    <li>Request/response body schemas for all 8 endpoints</li>
+                    <li>What <code>{id}</code> refers to in PUT/DELETE routes (internal ID returned by POST?)</li>
+                    <li>Webhook payload format for player registration (what fields CoinFrenzy sends us)</li>
+                    <li>Confirmation of username format (alphanumeric, case-sensitivity)</li>
+                    <li>Confirmation that <code>?code={code}</code> URL query param is handled on signup</li>
+                    <li>A test CoinFrenzy.com account we can use for end-to-end testing</li>
+                </ul>
+            </div>
+
+            <div class="info-card green">
+                <h4 style="color: #22c55e;">What CoinFrenzy.com Gets From Us</h4>
+                <ul style="margin-top: 0.75rem;">
+                    <li>Supabase service role key (for pushing NGR data)</li>
+                    <li>Supabase base URL (already in this doc)</li>
+                    <li>Table schemas and field requirements (already in this doc)</li>
+                    <li>Webhook endpoint URL for player registration (frenzycreator.com will provide)</li>
+                    <li>This complete API documentation</li>
+                    <li>A test affiliate account on frenzycreator.com for verification</li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="doc-footer">
+        <div class="container">
+            <p>CoinFrenzy Creator Program · Integration API Documentation v1.4</p>
+            <p style="margin-top: 0.5rem;">Confidential — For CoinFrenzy.com development team only</p>
+        </div>
+    </footer>
+
+    <!-- Lock Screen -->
+    <div id="lock-screen" style="position:fixed;inset:0;z-index:9999;background:var(--black);display:flex;align-items:center;justify-content:center;">
+        <div style="width:100%;max-width:380px;padding:2rem;">
+            <div style="text-align:center;margin-bottom:2rem;">
+                <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:14px;background:rgba(212,168,85,0.1);border:1px solid rgba(212,168,85,0.2);margin-bottom:1rem;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4a855" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--white);margin-bottom:0.25rem;">Protected Document</h2>
+                <p style="font-size:0.85rem;color:var(--gray);">Enter the access code to view API docs</p>
+            </div>
+            <form id="lock-form" onsubmit="return checkPass()">
+                <input id="lock-input" type="password" placeholder="Access code" autofocus
+                    style="width:100%;padding:0.85rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--white);font-size:0.95rem;outline:none;margin-bottom:0.75rem;transition:border-color 0.2s;">
+                <div id="lock-error" style="display:none;font-size:0.8rem;color:#ef4444;text-align:center;margin-bottom:0.75rem;">Incorrect access code</div>
+                <button type="submit"
+                    style="width:100%;padding:0.85rem;background:linear-gradient(135deg,var(--gold),var(--gold-light,#e8c677));color:#000;border:none;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;transition:opacity 0.2s;">
+                    Unlock
+                </button>
+            </form>
+            <p style="text-align:center;font-size:0.7rem;color:var(--gray);margin-top:1.5rem;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                CoinFrenzy Creator · Internal Use Only
+            </p>
+        </div>
+    </div>
+    <script>
+    (function(){
+        var KEY = 'cf_api_unlocked';
+        if (sessionStorage.getItem(KEY) === '1') {
+            document.getElementById('lock-screen').style.display = 'none';
+        }
+        window.checkPass = function() {
+            var val = document.getElementById('lock-input').value;
+            if (val === 'cfdev') {
+                sessionStorage.setItem(KEY, '1');
+                document.getElementById('lock-screen').style.display = 'none';
+            } else {
+                document.getElementById('lock-error').style.display = 'block';
+                document.getElementById('lock-input').style.borderColor = '#ef4444';
+                document.getElementById('lock-input').value = '';
+                document.getElementById('lock-input').focus();
+            }
+            return false;
+        };
+    })();
+    </script>
+    <script src="/env-banner.js"></script>
+</body>
+</html>

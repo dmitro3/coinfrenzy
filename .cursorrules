@@ -1,0 +1,254 @@
+# CoinFrenzy Casino — Cursor Rules
+
+You are working on the CoinFrenzy casino platform — a sweepstakes social
+casino that will replace the operator's existing Gamma platform. This
+codebase has been pre-designed in detail. Your job is to implement what's
+already designed, not to redesign it.
+
+---
+
+## The constitution
+
+The `/docs` folder is the source of truth. There are 13 architecture
+documents totaling ~11,000 lines. Before you write code for a task, you
+MUST read the relevant doc.
+
+The mapping from task to doc:
+
+| Task type | Read this doc first |
+| --- | --- |
+| Scaffolding the monorepo, choosing project structure | docs/01_architecture_overview.md, docs/02_core_service_layer.md |
+| Building anything in `packages/core` | docs/02_core_service_layer.md |
+| Database schema, Drizzle migrations, indexes, RLS | docs/03_data_model.md |
+| Ledger writes, wallet reads, balance reconciliation | docs/04_ledger_and_wallet.md |
+| Webhook handlers (Finix, Alea, Footprint, Radar, etc.) | docs/05_webhooks.md |
+| Bonus engine, playthrough, promo codes, AMOE | docs/06_bonus_engine_playthrough.md |
+| Redemption flow, KYC integration, cashier review | docs/07_redemption_and_kyc.md |
+| Admin panel UI (any admin page) | docs/08_admin_panel.md |
+| Auth, sessions, RLS policies, audit log, secrets | docs/09_security_compliance_audit.md |
+| Frontend layouts, routing, components, real-time | docs/10_frontend_architecture.md |
+| CRM (segments, campaigns, flows, templates) | docs/11_crm.md |
+| Dashboards, reports, exports | docs/12_reporting_dashboards_exports.md |
+| Gamma migration, cutover scripts | docs/13_migration_from_gamma.md |
+
+If the user asks you to do something not covered by these docs, ASK them
+before guessing. Do not improvise architecture.
+
+---
+
+## Stack — fixed, no substitutions
+
+Do not propose alternatives. These were chosen with reason and locked.
+
+- **Next.js 15** App Router (NOT Pages Router)
+- **TypeScript** strict mode (no `any` without comment-justification)
+- **Drizzle ORM** (NOT Prisma — we explicitly rejected Prisma)
+- **Neon Postgres** for this project (NOT Supabase — that's a different project)
+- **shadcn/ui** + **Tailwind v3** (NOT v4 — alpha)
+- **lucide-react** for icons
+- **TanStack Query** (React Query) for client-side data fetching
+- **react-hook-form** + **Zod** for forms
+- **Better Auth** for player auth
+- **HMAC sessions** for admin auth (pattern in docs/09)
+- **Inngest** for queues and cron
+- **Fly.io** for the worker app
+- **Cloudflare R2** for object storage
+- **Upstash Redis** for caching
+- **Pusher Channels** (or Ably) for real-time
+- **Sentry** + **Axiom** + **Grafana Cloud** + **PagerDuty** for observability
+- **Doppler** for secrets
+- **SendGrid** for email, **Twilio** for SMS
+- **fast-check** for property-based tests
+- **Playwright** for E2E tests
+- **Vitest** for unit tests
+- **Testcontainers** for integration tests against real Postgres
+
+---
+
+## Non-negotiable architecture rules
+
+These cannot be violated. If a task seems to require violating one, STOP
+and ask the user.
+
+### Monorepo structure
+```
+apps/
+  web/          ← Next.js app (player + admin + marketing)
+  worker/       ← Fly.io worker for Inngest functions + cron
+packages/
+  core/         ← ALL business logic lives here
+  db/           ← Drizzle schema + migrations
+  ui/           ← Shared UI components
+  config/       ← Shared types, constants, Zod schemas
+```
+
+**All business logic lives in `packages/core`.** Apps (`apps/web`,
+`apps/worker`) are thin transports. They parse input, call core
+functions, format output. They do not contain logic.
+
+This means: NO writing business logic in `app/api/*` route handlers
+beyond input parsing and response formatting.
+
+### Money handling
+- Money is `bigint` at the application layer
+- Money is `numeric(20,4)` at the database layer
+- Money is NEVER `number` or `float`
+- Currencies are explicit (`'GC'`, `'SC'`, or `'USD'`) — no implicit currency
+
+### The ledger
+- Every coin movement goes through `core/ledger.write()` — no exceptions
+- Every ledger write is idempotent via `(source, source_id)` unique constraint
+- The ledger is immutable (UPDATE/DELETE rejected by Postgres triggers)
+- Wallet balances are computed by the ledger; the `wallets` table is a denormalized cache updated atomically with each ledger write
+
+### Audit
+- Every admin action writes a row to `audit_log`
+- The `audit_log` table is append-only (UPDATE/DELETE rejected)
+- Every authentication event (login, logout, password reset, 2FA enable/disable) is audited
+
+### RLS
+- Every table has Row Level Security enabled
+- Default policy is deny-all
+- Specific policies open specific paths
+- See docs/09 §4 for the patterns
+
+### Idempotency
+- Every external webhook is idempotent at the receiver level via `pending_webhooks` table
+- Every internal job is idempotent via deterministic IDs
+- Retries are always safe
+
+---
+
+## Things you must NEVER do
+
+- Do NOT use `any` type without a `// REASON:` comment explaining why
+- Do NOT use raw SQL except in Drizzle migrations (use the query builder)
+- Do NOT use `dangerouslySetInnerHTML` in React
+- Do NOT use `localStorage` or `sessionStorage` for sensitive data
+- Do NOT log sensitive data (cards, SSN, full DOB, passwords, API keys)
+- Do NOT commit `.env` files
+- Do NOT store secrets in code — use Doppler
+- Do NOT install new dependencies without explicit user approval — every package added is a security and maintenance cost
+- Do NOT create new database tables without first updating `docs/03_data_model.md`
+- Do NOT modify the ledger immutability triggers or RLS policies without explicit approval
+- Do NOT use `prisma`, `mongoose`, or any other ORM — we use Drizzle
+- Do NOT use React class components — function components only
+- Do NOT use `setTimeout`/`setInterval` for periodic work — use Inngest cron functions
+- Do NOT introduce a new third-party API without explicit approval
+- Do NOT delete or "clean up" files unless explicitly asked
+
+---
+
+## Things you must ALWAYS do
+
+- Always read the relevant doc before starting a task
+- Always use the `Context` object pattern from docs/02 §6 for service-layer functions
+- Always use the `Result<T, E>` type from docs/02 for fallible operations
+- Always parameterize SQL queries (Drizzle does this; don't bypass)
+- Always wrap database transactions for multi-write operations
+- Always add an entry to `audit_log` for admin actions
+- Always check RLS policies when creating a new table
+- Always set `app.actor_id` and `app.actor_kind` at the start of every database transaction
+- Always emit a CRM event (docs/11 §1) for meaningful player actions
+- Always write tests for new code in `packages/core`
+- Always run TypeScript and lint checks before claiming a task is done
+- Always report back what you did and what to verify after each task
+
+---
+
+## How to report after completing a task
+
+End every multi-file task with a report in this exact format:
+
+```
+## Done
+
+### Files created
+- path/to/file.ts (N lines, what it does in one sentence)
+- ...
+
+### Files modified
+- path/to/file.ts (what changed in one sentence)
+- ...
+
+### Verify these worked
+- [ ] `pnpm typecheck` passes
+- [ ] `pnpm lint` passes
+- [ ] `pnpm test` passes (if tests were added/touched)
+- [ ] [task-specific verification, e.g. "the migration ran successfully"]
+
+### Anything I deviated from the spec
+- [Either: "Nothing — followed docs/XX exactly"]
+- [Or: list each deviation and why]
+
+### Open questions
+- [Either: "None"]
+- [Or: list specific things that weren't clear in the docs and that I made
+  a judgment call on — the user will decide whether to keep or change]
+
+### Next step
+The user should run prompts/NN_next_prompt.md, or message Claude with
+this report to verify before continuing.
+```
+
+---
+
+## When you don't know something
+
+Three responses in order of preference:
+
+1. **Read the docs.** Use the task→doc map at the top of this file.
+
+2. **Ask the user.** Better one extra question than 30 minutes of wrong work.
+
+3. **Make a small judgment call and flag it.** If it's genuinely a tiny
+   detail (e.g. the exact name of an internal helper), pick a reasonable
+   name and note it in "Open questions" in your report. The user can
+   correct on next session.
+
+Never:
+- Guess at external API behavior without checking the docs in `/docs`
+- Invent new architectural patterns
+- "Refactor" something that's working
+- Optimize prematurely (the docs already address performance — see Doc 04 §8, Doc 11 §9, Doc 12 §11)
+
+---
+
+## Style preferences
+
+- TypeScript: 2-space indent, no semicolons unless TS requires them, single quotes
+- React: function components, named exports preferred
+- Imports: use absolute imports via `@coinfrenzy/*` workspace aliases (defined in monorepo setup)
+- File names: kebab-case for files (`bonus-engine.ts`), PascalCase for React components (`PlayerCard.tsx`)
+- Comments: explain WHY, not WHAT. The code shows what.
+
+---
+
+## The user
+
+The user is the founder. He's the project manager. He is NOT the engineer
+writing this code — you are. He's been deep in product design with Claude
+(in a separate chat) and has produced the 13 docs you're following.
+
+When the user asks a question, answer practically. When the user reports
+an error or unexpected behavior, ask for the exact error message before
+guessing at causes. Don't condescend; he understands the architecture
+intent even if he's not implementing it directly.
+
+The user uses Claude (the separate chat, the one that wrote the docs) as
+his architect/escalation point. If you encounter something genuinely
+ambiguous or outside the docs, tell him "this needs Claude's input" and
+he'll consult.
+
+---
+
+## When you're done with a session
+
+Always end with a summary of:
+1. What was completed
+2. What was NOT completed (if anything was left for next session)
+3. What the user should verify before moving on
+4. Which prompt file is next
+
+The user is following a numbered sequence of prompts. He needs to know
+where he is in that sequence at all times.

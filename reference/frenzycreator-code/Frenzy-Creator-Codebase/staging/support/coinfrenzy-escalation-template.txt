@@ -1,0 +1,30 @@
+Copy/paste for CoinFrenzy engineering (Creator Program / dev2-cron):
+
+Subject: Creator Program API returns HTTP 503 — "Creator program API not configured"
+
+We call the Creator Program from frenzycreator.com via a server proxy that forwards:
+- Method: POST
+- URL: <paste full URL, e.g. https://dev2-cron.coinfrenzy.com/api/v1/frenzy-creator/>
+- Headers: Authorization: Bearer <our key>, X-Api-Key: <same key>, Content-Type: application/json
+
+Observed response:
+- HTTP status: 503 (or other): ___
+- Response body (JSON): ___
+
+Request ID / trace headers from your response (if any): ___
+
+Questions:
+1. Which base URL and API key should we use so POST /api/v1/frenzy-creator/ returns success for affiliate registration?
+2. Is the Creator Program enabled on this stack for our key?
+3. If we should use a different host than dev2-cron, please provide the production/staging base URL.
+
+We confirm Vercel env COINFRENZY_CRON_API_KEY is set and we redeployed after changes. Direct curl from our side to the same URL with the same headers reproduces the same error (attach if needed).
+
+Reproduction example (replace KEY with our real key for your logs):
+curl -sS -X POST 'https://dev2-cron.coinfrenzy.com/api/v1/frenzy-creator/' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer KEY' \
+  -H 'X-Api-Key: KEY' \
+  -d '{"username":"testuser","email":"a@b.com","full_name":"Test"}'
+
+Observed from frenzycreator infra: HTTP 503 with body {"success":false,"error":"Creator program API not configured"} (or {"error":"Creator program API not configured"}).

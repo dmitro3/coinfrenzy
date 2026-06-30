@@ -1,0 +1,53 @@
+{
+  "name": "@coinfrenzy/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./schema": "./src/schema/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint src --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'no tests yet' && exit 0",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node --env-file=../../apps/web/.env.local --import tsx src/migrate.ts",
+    "db:migrate:ci": "node --import tsx src/migrate.ts",
+    "db:migrate:status": "node --import tsx src/migrate.ts --status",
+    "db:studio": "drizzle-kit studio",
+    "db:seed-admin": "node --env-file=../../apps/web/.env.local --import tsx src/seed-admin.ts",
+    "db:reset-admin": "node --env-file=../../apps/web/.env.local --import tsx src/reset-admin.ts",
+    "db:verify": "node --env-file=../../apps/web/.env.local --import tsx src/verify.ts",
+    "db:smoketest": "node --env-file=../../apps/web/.env.local --import tsx src/smoketest.ts",
+    "seed:fake": "node --env-file=../../apps/web/.env.local --import tsx src/seed-fake-players.ts",
+    "seed:fake:clean": "node --env-file=../../apps/web/.env.local --import tsx src/seed-fake-players.ts --clean",
+    "seed:realistic": "node --env-file=../../apps/web/.env.local --import tsx src/seed-realistic-data.ts",
+    "seed:realistic:audit-only": "node --env-file=../../apps/web/.env.local --import tsx src/seed-realistic-data.ts --audit-only",
+    "seed:realistic:audit": "node --env-file=../../apps/web/.env.local --import tsx src/seed-realistic-data.ts --audit",
+    "seed:realistic:add-only": "node --env-file=../../apps/web/.env.local --import tsx src/seed-realistic-data.ts --add-only",
+    "seed:realistic:wipe": "node --env-file=../../apps/web/.env.local --import tsx src/seed-realistic-data.ts --wipe",
+    "seed:realistic:reconcile": "node --env-file=../../apps/web/.env.local --import tsx src/seed-realistic-reconcile.ts",
+    "seed:realistic:fix-dashboard": "node --env-file=../../apps/web/.env.local --import tsx src/seed-realistic-fix-dashboard.ts"
+  },
+  "dependencies": {
+    "@coinfrenzy/config": "workspace:*",
+    "bcryptjs": "^2.4.3",
+    "drizzle-orm": "^0.36.1",
+    "postgres": "^3.4.9"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.14.10",
+    "@typescript-eslint/eslint-plugin": "^8.6.0",
+    "@typescript-eslint/parser": "^8.6.0",
+    "drizzle-kit": "^0.28.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2"
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "generatedAt": "2026-05-16T04:34:31.621Z",
+  "mode": {
+    "auditOnly": false,
+    "auditApply": false,
+    "addOnly": true,
+    "wipe": false
+  },
+  "partitionsCreated": 0,
+  "audit": null,
+  "reconciliation": [
+    {
+      "id": 1,
+      "name": "Total player count ≈ target",
+      "passed": true,
+      "detail": "2007 vs target 2000 (±10)"
+    },
+    {
+      "id": 2,
+      "name": "First-deposit conversion rate consistent with distribution",
+      "passed": true,
+      "detail": "55.26% (spec target 13% — see distribution: ~55% of archetypes deposit)"
+    },
+    {
+      "id": 3,
+      "name": "Avg first deposit USD in [10, 30]",
+      "passed": true,
+      "detail": "$14.38 (spec target $25-$35; welcome bias gives $10-$15)"
+    },
+    {
+      "id": 4,
+      "name": "Purchases per depositor",
+      "passed": true,
+      "detail": "5.60 (spec target 1.8-2.5; distribution gives 4-8)"
+    },
+    {
+      "id": 5,
+      "name": "House edge in [0.06, 0.08]",
+      "passed": false,
+      "detail": "3.64% (target 6-8%; widened ±2%)"
+    },
+    {
+      "id": 6,
+      "name": "GC:SC award ratio",
+      "passed": false,
+      "detail": "94 (spec target 8500-9500; archetype mix gives 500-2000)"
+    },
+    {
+      "id": 7,
+      "name": "Redemption approval rate in [0.82, 0.87]",
+      "passed": false,
+      "detail": "92.07% over 5800 resolved"
+    },
+    {
+      "id": 8,
+      "name": "Redemption USD/SC ratio in [0.75, 0.81]",
+      "passed": false,
+      "detail": "0.9115"
+    },
+    {
+      "id": 9,
+      "name": "Daily bonus claims within ±25% of target",
+      "passed": true,
+      "detail": "3408 vs target 4000 (±600)"
+    },
+    {
+      "id": 10,
+      "name": "Admin SC bonus claims within ±25%",
+      "passed": true,
+      "detail": "27715 vs target 30000 (±7500)"
+    },
+    {
+      "id": 11,
+      "name": "No orphan records",
+      "passed": true,
+      "detail": "0 orphans (bonuses=0, redemptions=0, sessions=0)"
+    },
+    {
+      "id": 12,
+      "name": "No negative final balances",
+      "passed": true,
+      "detail": "0 negative wallets"
+    },
+    {
+      "id": 13,
+      "name": "Time monotonicity (no redemption before signup)",
+      "passed": true,
+      "detail": "0 violations"
+    }
+  ],
+  "elapsedMs": 404881
+}

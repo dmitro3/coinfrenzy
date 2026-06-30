@@ -1,0 +1,386 @@
+{
+  "generatedAt": "2026-05-16T04:06:10.270Z",
+  "totalAnalyzed": 200,
+  "archetypeCountsBefore": {
+    "lurker": 3,
+    "welcome": 6,
+    "casual": 24,
+    "loser": 167,
+    "winner": 0,
+    "hroller": 0,
+    "midwhale": 0,
+    "whale": 0
+  },
+  "archetypeCountsAfter": {
+    "lurker": 3,
+    "welcome": 6,
+    "casual": 24,
+    "loser": 167,
+    "winner": 0,
+    "hroller": 0,
+    "midwhale": 0,
+    "whale": 0
+  },
+  "reshaped": [
+    {
+      "playerId": "a4787942-f7e0-4588-ac7a-b17aad0d90d3",
+      "email": "seed-player-4@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "98a8601e-2c05-4d47-9426-69d296728fa9",
+      "email": "seed-player-14@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "26be2ff8-3e47-4706-86f0-4e9d736629c8",
+      "email": "seed-player-15@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "082a44f5-2b8b-4b6c-bdcb-a2ab31a8fd93",
+      "email": "seed-player-26@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "c323f0b4-eb9e-433e-95a3-4fc3369d2e76",
+      "email": "seed-player-36@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "541f8f93-ca97-44d0-b0d2-56b99d8f9104",
+      "email": "seed-player-39@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "2385c5f9-24c2-4915-a3d4-7679ab5bedcd",
+      "email": "seed-player-44@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "69bc1d88-291e-4b02-a07f-d39c6536e1d6",
+      "email": "seed-player-47@coinfrenzy-fake.test",
+      "archetype": "casual",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "8f8d14af-76a2-4ac8-a30e-0f595c87709a",
+      "email": "seed-player-49@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "aca6df84-dc38-4397-8c81-5b45d61c5b12",
+      "email": "seed-player-53@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "8a63352b-89ee-4c84-bd51-5327c85020c6",
+      "email": "seed-player-59@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "7c3b2cda-d11d-4070-a217-eba0b0b9c065",
+      "email": "seed-player-66@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "fadea668-9ab4-4e2b-8d56-84ee9c99ae59",
+      "email": "seed-player-84@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "a10db12f-302f-45c8-aa84-69404d102816",
+      "email": "seed-player-93@coinfrenzy-fake.test",
+      "archetype": "welcome",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "8ca571b0-2e43-4d16-9664-094e42f19ffe",
+      "email": "seed-player-111@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "19cb70cb-a3bc-406c-8134-2e1d8e132aad",
+      "email": "seed-player-133@coinfrenzy-fake.test",
+      "archetype": "casual",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "7f90024e-df88-4c95-a6c7-7df1c731c53e",
+      "email": "seed-player-144@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "3222343c-3d20-4340-8fef-f8b76170fd89",
+      "email": "seed-player-150@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "f2c1cc05-4213-4690-95cf-2295631df618",
+      "email": "seed-player-161@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "40e28eee-20c3-41b2-9b82-b5b44da01c20",
+      "email": "seed-player-164@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "e5cf55a8-4860-41d0-844f-a486ffffca92",
+      "email": "seed-player-166@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "45c924ea-5151-4821-85d3-dfa16241e636",
+      "email": "seed-player-172@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "faaee80e-5602-4fbd-9cb2-16bb5f86890f",
+      "email": "seed-player-176@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "d94f27d8-7a8f-41f5-a46a-8ee45fa35e2b",
+      "email": "seed-player-181@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "167519a4-3032-4196-a368-deebe5784c9b",
+      "email": "seed-player-182@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "2e1a4b3a-b024-4116-ad7f-073ecdc1a133",
+      "email": "seed-player-183@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "17fb0c27-6e3a-4463-9f8e-1e8d64da23c4",
+      "email": "seed-player-188@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "49a6df8c-b4a9-4c04-8f09-1ebe10a40d20",
+      "email": "seed-player-189@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "fd233ab2-ad76-4125-8768-4258e0b3361c",
+      "email": "seed-player-191@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "5d0241a8-7176-4da1-b0c3-cc2b71cf1428",
+      "email": "seed-player-193@coinfrenzy-fake.test",
+      "archetype": "casual",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "08452a41-dcfb-48d2-83d6-45bb0304fb99",
+      "email": "seed-player-194@coinfrenzy-fake.test",
+      "archetype": "loser",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 2
+        }
+      }
+    },
+    {
+      "playerId": "025f1992-776c-4635-889f-16537aae6d55",
+      "email": "seed-player-195@coinfrenzy-fake.test",
+      "archetype": "casual",
+      "changes": {
+        "kycLevel": {
+          "before": 0,
+          "after": 1
+        }
+      }
+    }
+  ],
+  "unchanged": 168,
+  "manualReview": [
+    {
+      "playerId": "N/A",
+      "email": "N/A (legacy ledger)",
+      "reason": "Found 6007 legacy seed-game-* ledger entries with broken RTP — deleted."
+    }
+  ]
+}

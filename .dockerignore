@@ -1,0 +1,35 @@
+# Build context excludes — keep the image lean and deterministic.
+# Everything the build needs (workspace manifests + source) is copied in;
+# anything generated, local, or secret is excluded here.
+
+.git
+.github
+.vscode
+.cursor
+.husky
+
+# Docs / non-runtime material
+docs
+runbooks
+reference
+prompts
+
+# Installed / generated artifacts (re-created inside the image)
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/.cache
+**/coverage
+
+# Local env + secrets — NEVER bake these into an image.
+# Real values are injected at runtime via `env_file` in docker-compose.
+**/.env
+**/.env.*
+!**/.env.example
+.env.docker
+
+# Misc
+**/*.log
+**/.DS_Store
+docker-compose*.yml

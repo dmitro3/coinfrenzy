@@ -1,0 +1,19 @@
+node_modules
+dist
+build
+.next
+.turbo
+coverage
+pnpm-lock.yaml
+*.tsbuildinfo
+
+# macOS AppleDouble metadata files (created when unzipping on macOS).
+# They have real extensions like .js/.ts but contain binary metadata
+# that crashes prettier with "Unexpected character" errors.
+**/__MACOSX/**
+**/._*
+.DS_Store
+
+# Reference materials — third-party code we keep for context only.
+# Never format or lint these; they ship in whatever style their authors used.
+reference/

@@ -1,0 +1,2193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * CoinFrenzy admin/visual design system — Linear/Vercel inspired dark theme.
+ *
+ * Token naming uses two layers:
+ *  - `--color-*` semantic tokens (the source of truth for new components)
+ *  - shadcn-compatible aliases (`--background`, `--card`, etc.) so existing
+ *    primitives keep working while we migrate.
+ *
+ * Gold (--color-accent) is used SPARINGLY — primary CTAs, focus rings, and
+ * key data emphasis only. Never decorative.
+ */
+
+@layer base {
+  :root {
+    /* Light mode — fallback only. Marketing pages may opt in. */
+    --color-bg-base: 0 0% 100%;
+    --color-bg-surface: 0 0% 100%;
+    --color-bg-surface-hover: 240 5% 96%;
+    --color-bg-elevated: 0 0% 100%;
+
+    --color-border-subtle: 240 6% 92%;
+    --color-border-default: 240 6% 86%;
+    --color-border-strong: 240 6% 78%;
+
+    --color-text-primary: 240 10% 4%;
+    --color-text-secondary: 240 5% 35%;
+    --color-text-tertiary: 240 5% 50%;
+    --color-text-disabled: 240 5% 70%;
+
+    --color-accent: 45 93% 42%;
+    --color-accent-hover: 45 93% 38%;
+    --color-accent-foreground: 0 0% 100%;
+
+    --color-success: 142 70% 38%;
+    --color-success-bg: 142 70% 92%;
+    --color-warning: 38 92% 45%;
+    --color-warning-bg: 38 92% 92%;
+    --color-error: 0 84% 50%;
+    --color-error-bg: 0 84% 95%;
+    --color-info: 217 91% 50%;
+    --color-info-bg: 217 91% 95%;
+
+    /* shadcn aliases */
+    --background: var(--color-bg-base);
+    --foreground: var(--color-text-primary);
+    --card: var(--color-bg-surface);
+    --card-foreground: var(--color-text-primary);
+    --popover: var(--color-bg-elevated);
+    --popover-foreground: var(--color-text-primary);
+    --primary: var(--color-accent);
+    --primary-foreground: var(--color-accent-foreground);
+    --secondary: var(--color-bg-surface-hover);
+    --secondary-foreground: var(--color-text-primary);
+    --muted: var(--color-bg-surface-hover);
+    --muted-foreground: var(--color-text-secondary);
+    --accent: var(--color-bg-surface-hover);
+    --accent-foreground: var(--color-text-primary);
+    --destructive: var(--color-error);
+    --destructive-foreground: 0 0% 98%;
+    --success: var(--color-success);
+    --warning: var(--color-warning);
+    --info: var(--color-info);
+    --vip: 271 91% 65%;
+    --border: var(--color-border-default);
+    --input: var(--color-border-default);
+    --ring: var(--color-accent);
+    --radius: 0.625rem; /* 10px — matches --radius-lg */
+
+    /* Spacing tokens (informational; tailwind's 8px scale is already available) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* Radii */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+    --radius-xl: 12px;
+
+    /* Shadows — subtle on dark; reserved for popovers/modals. */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.5);
+    --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.4);
+  }
+
+  /*
+   * Coin Frenzy player-facing brand tokens (M5).
+   *
+   * The admin platform (M1-M4) uses the Linear/Vercel-inspired tokens
+   * above; do not change them. Player surfaces and marketing pages use
+   * the `--cf-*` tokens below, sourced from the official Coin Frenzy
+   * brand guide. The `body[data-cf-surface]` selector (set by player
+   * and marketing layouts) overrides the shadcn aliases so primitives
+   * (Button, Input, Card) render with brand colors automatically.
+   */
+  :root {
+    /* Reds */
+    --cf-red-primary: #e01e23;
+    --cf-red-deep: #3a0a0c;
+    --cf-red-dark: #7f1015;
+    /* Gold — sampled directly from the Coin Frenzy Originals tiles
+     * (Plinko, Mines, Cross, Keno, Roulette). The brand gold is a
+     * WARM AMBER with peach highlights, NOT lemon yellow. Anything
+     * cooler than this and the SHOP button reads as plastic.  */
+    --cf-gold-pale: #fce5a8; /* peach-cream sheen (top of highlight) */
+    --cf-gold-light: #e6b558; /* warm amber-gold body (the “Coin Frenzy script” gold) */
+    --cf-gold-medium: #c69032; /* rich amber mid */
+    --cf-gold-deep: #8a5f17; /* deep amber-bronze */
+    --cf-gold-bronze: #3a2407; /* dark brown-bronze edge */
+    /* Mono */
+    --cf-black: #000000;
+    --cf-white: #ffffff;
+    --cf-gray: #4c4c4c;
+    --cf-gray-light: #888888;
+    /* Surfaces */
+    --cf-bg-base: #000000;
+    --cf-bg-elevated: #0a0a0a;
+    --cf-bg-card: #111111;
+    --cf-bg-card-hover: #161616;
+    --cf-border-subtle: #1a1a1a;
+    --cf-border-default: #262626;
+    --cf-border-gold: #cc9933;
+    /* SC / sweepstakes coin green palette. Five stops so SC numerals can
+     * be rendered as a gradient-clipped emerald (top mint sheen → deep
+     * jewel base) rather than a flat Tailwind lime — the live site uses
+     * a richer "polished casino emerald" than the previous #22c55e /
+     * #4ade80 pair (which read as neon-lime next to the warm gold). */
+    --cf-green-pale: #c8fadc; /* mint-cream sheen (top of highlight) */
+    --cf-green-bright: #34e88e; /* crisp emerald-mint (the SC numeral) */
+    --cf-green: #18c171; /* rich jewel emerald (mid) */
+    --cf-green-deep: #086a3c; /* deep emerald shadow */
+    --cf-green-shadow: #052918; /* darkest edge */
+
+    /* Typography */
+    --cf-font-headline:
+      var(--font-cinzel), 'Thunder Demo', 'Cinzel', 'Cormorant Garamond', 'Playfair Display', serif;
+    --cf-font-body:
+      var(--font-montserrat), 'Montserrat', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+      sans-serif;
+  }
+
+  .dark {
+    /* CoinFrenzy default: Linear/Vercel-inspired dark with refined gold accent. */
+    --color-bg-base: 240 6% 5%; /* #0a0a0c */
+    --color-bg-surface: 240 6% 7%; /* #111114 */
+    --color-bg-surface-hover: 240 6% 9%; /* #16161a */
+    --color-bg-elevated: 240 6% 11%; /* #1c1c20 */
+
+    --color-border-subtle: 240 5% 14%; /* #1f1f23 */
+    --color-border-default: 240 5% 18%; /* #2a2a30 */
+    --color-border-strong: 240 5% 24%; /* #3a3a42 */
+
+    --color-text-primary: 0 0% 98%; /* #fafafa */
+    --color-text-secondary: 240 5% 65%; /* #a1a1aa */
+    --color-text-tertiary: 240 5% 45%; /* #71717a */
+    --color-text-disabled: 240 5% 30%; /* #4a4a52 */
+
+    --color-accent: 45 93% 47%; /* #eab308 — refined gold */
+    --color-accent-hover: 45 93% 52%;
+    --color-accent-foreground: 0 0% 9%; /* black on gold */
+
+    --color-success: 142 70% 45%;
+    --color-success-bg: 142 70% 12%;
+    --color-warning: 38 92% 50%;
+    --color-warning-bg: 38 92% 12%;
+    --color-error: 0 84% 60%;
+    --color-error-bg: 0 84% 12%;
+    --color-info: 217 91% 60%;
+    --color-info-bg: 217 91% 12%;
+
+    /* shadcn aliases — all driven by the new semantic tokens above */
+    --background: var(--color-bg-base);
+    --foreground: var(--color-text-primary);
+    --card: var(--color-bg-surface);
+    --card-foreground: var(--color-text-primary);
+    --popover: var(--color-bg-elevated);
+    --popover-foreground: var(--color-text-primary);
+    --primary: var(--color-accent);
+    --primary-foreground: var(--color-accent-foreground);
+    --secondary: var(--color-bg-surface-hover);
+    --secondary-foreground: var(--color-text-primary);
+    --muted: var(--color-bg-surface-hover);
+    --muted-foreground: var(--color-text-secondary);
+    --accent: var(--color-bg-surface-hover);
+    --accent-foreground: var(--color-text-primary);
+    --destructive: var(--color-error);
+    --destructive-foreground: 0 0% 98%;
+    --success: var(--color-success);
+    --warning: var(--color-warning);
+    --info: var(--color-info);
+    --vip: 271 91% 70%;
+    --border: var(--color-border-default);
+    --input: var(--color-border-default);
+    --ring: var(--color-accent);
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--color-border-default));
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: hsl(var(--color-bg-base));
+    color: hsl(var(--color-text-primary));
+    /* Linear's exact font tweaks — Inter with these features feels right at small sizes. */
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.011em;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Tabular numerals — every money/id element. */
+  .font-mono,
+  .tabular-nums,
+  [data-numeric='true'] {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /* Admin shell — slightly different ambient color from the player surface so
+     player-vs-admin is visually distinct even at a glance. Today they share
+     the base palette; the .admin-surface hook lives here for future contrast. */
+  .admin-surface {
+    background-color: hsl(var(--color-bg-base));
+    color: hsl(var(--color-text-primary));
+  }
+
+  /* Legacy aliases — kept so existing pages stay intact while the rebuild
+     migrates them piece by piece. */
+  .admin-card {
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+  }
+
+  .admin-tile-label {
+    color: hsl(var(--color-text-secondary));
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 500;
+  }
+
+  .admin-tile-value {
+    color: hsl(var(--color-text-primary));
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  /* Focus ring per spec — accent halo with a base-color buffer. */
+  .focus-ring {
+    box-shadow:
+      0 0 0 2px hsl(var(--color-bg-base)),
+      0 0 0 4px hsl(var(--color-accent));
+  }
+
+  /*
+   * Coin Frenzy player surface — applied via `body[data-cf-surface]` from
+   * the (player) and (marketing) and (auth) layouts. Player primitives
+   * (Button, Input, Card, etc.) keep working via the shadcn aliases, but
+   * the underlying CSS variables are remapped to the brand palette so the
+   * whole surface picks up the deep red / gold look without touching the
+   * admin theme.
+   */
+  body[data-cf-surface] {
+    background-color: var(--cf-bg-base);
+    color: var(--cf-white);
+    font-family: var(--cf-font-body);
+    letter-spacing: 0;
+  }
+
+  body[data-cf-surface] {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 38 49% 70%; /* gold light */
+    --primary-foreground: 0 0% 6%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 9%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 38 60% 50%; /* gold medium */
+    --accent-foreground: 0 0% 4%;
+    --destructive: 358 76% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 12%;
+    --input: 0 0% 12%;
+    --ring: 38 49% 60%;
+    --radius: 0.5rem;
+    color-scheme: dark;
+  }
+
+  /* Headline font for marketing/player display copy. */
+  body[data-cf-surface] .cf-headline,
+  body[data-cf-surface] h1.cf-headline,
+  body[data-cf-surface] h2.cf-headline,
+  body[data-cf-surface] h3.cf-headline {
+    font-family: var(--cf-font-headline);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* The signature vertical metallic gold gradient used on every primary CTA.
+   * Five-stop gradient mimics polished metal: light at top, brighter
+   * highlight ~30% from top, mid-gold, and a deep gold floor. */
+  .cf-gold-gradient {
+    background: linear-gradient(
+      180deg,
+      var(--cf-gold-pale) 0%,
+      var(--cf-gold-light) 28%,
+      var(--cf-gold-medium) 55%,
+      var(--cf-gold-deep) 85%,
+      var(--cf-gold-bronze) 100%
+    );
+    color: #1a1300;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+  .cf-gold-gradient:hover {
+    background: linear-gradient(
+      180deg,
+      #fff1c0 0%,
+      #f4d472 28%,
+      #e0b246 55%,
+      #b48628 85%,
+      #6d4d12 100%
+    );
+  }
+  .cf-gold-gradient:active {
+    background: linear-gradient(
+      180deg,
+      var(--cf-gold-deep) 0%,
+      var(--cf-gold-medium) 50%,
+      var(--cf-gold-light) 100%
+    );
+  }
+
+  /* Gold gradient text — used on big display headlines per the brand. */
+  .cf-gold-text {
+    background: linear-gradient(
+      180deg,
+      var(--cf-gold-pale) 0%,
+      var(--cf-gold-light) 30%,
+      var(--cf-gold-medium) 60%,
+      var(--cf-gold-deep) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.5));
+  }
+
+  /* SC sweepstakes-coin gradient text — used on the prominent SC balance
+   * display (top-bar pill, balance dropdown row, big celebration counts).
+   * Four-stop emerald gradient with a mint sheen on top gives the
+   * "crisp polished casino emerald" feel — way more depth than a flat
+   * #4ade80, while still reading green at a glance. */
+  .cf-sc-shine {
+    background: linear-gradient(
+      180deg,
+      var(--cf-green-pale) 0%,
+      var(--cf-green-bright) 32%,
+      var(--cf-green) 68%,
+      var(--cf-green-deep) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    /* Soft emerald glow + a tight dark drop-shadow so the digits punch
+     * cleanly off any background without blooming. */
+    filter: drop-shadow(0 0 6px rgba(52, 232, 142, 0.28)) drop-shadow(0 1px 0 rgba(5, 41, 24, 0.65));
+  }
+
+  /* The trapezoidal SHOP button from the live coinfrenzy.com top bar.
+   * Wider at top, narrower at bottom. Three layered backgrounds give
+   * it the "minted polished gold" feel of the live site:
+   *   1) base vertical 5-stop gold gradient (pale → bronze)
+   *   2) inner highlight sheen at ~12% from the top
+   *   3) subtle warm spot light at top-center for 3D minting
+   * No rounded corners — the clip-path is a true trapezoid.
+   *
+   * NOTE: the coin pour (`.cf-shop-button__pour`) is now a SIBLING of
+   * this button (under `.cf-shop-wrap`), so falling coins are no longer
+   * clipped by the polygon and can actually tumble out the bottom edge
+   * into visible space. */
+  .cf-shop-wrap {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    isolation: isolate;
+  }
+  .cf-shop-button {
+    position: relative;
+    z-index: 2; /* in front of the coin pour sibling */
+    background:
+      radial-gradient(
+        ellipse 70% 60% at 50% -10%,
+        rgba(255, 255, 255, 0.55) 0%,
+        rgba(255, 255, 255, 0) 60%
+      ),
+      linear-gradient(
+        180deg,
+        var(--cf-gold-pale) 0%,
+        var(--cf-gold-light) 22%,
+        var(--cf-gold-medium) 52%,
+        var(--cf-gold-deep) 82%,
+        var(--cf-gold-bronze) 100%
+      );
+    clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
+    color: #1a1300;
+    text-shadow:
+      0 1px 0 rgba(255, 248, 220, 0.55),
+      0 -1px 0 rgba(120, 80, 14, 0.35);
+    transition:
+      filter 0.18s ease,
+      transform 0.1s ease;
+  }
+  .cf-shop-button:hover {
+    filter: brightness(1.08) saturate(1.08);
+  }
+  /* When the SHOP area is hovered, the coin stream speeds up subtly to
+   * reward the focus without becoming distracting. */
+  .cf-shop-wrap:hover .cf-shop-button__coin {
+    animation-duration: 3.6s;
+  }
+  .cf-shop-button:active {
+    transform: translateY(1px) scale(0.99);
+    filter: brightness(0.95);
+  }
+  /* Inner highlight band — a crisp white sheen near the top edge for the
+   * polished-metal reflection. */
+  .cf-shop-button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.08) 18%,
+      rgba(255, 255, 255, 0) 40%,
+      rgba(0, 0, 0, 0) 70%,
+      rgba(0, 0, 0, 0.18) 100%
+    );
+    pointer-events: none;
+    clip-path: inherit;
+  }
+  /* Coin-pour layer — six small gold coins that gestate behind the
+   * SHOP button and tumble visibly out of its bottom edge in a steady,
+   * staggered stream. Sits behind the trapezoid (z:0) so the coins
+   * "fall out from under" the button, with overhang/extension below
+   * so the trail is fully visible (unclipped). */
+  .cf-shop-button__pour {
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    /* Pour gestates inside the button (top: 50% so coins are born hidden
+     * behind the gold surface) and overflows just past the bottom edge
+     * so the trail is clearly visible without spilling far into the
+     * content area below the top bar. */
+    top: 50%;
+    bottom: -30px;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 0;
+  }
+  .cf-shop-button__coin {
+    position: absolute;
+    top: 0;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    /* 5-stop minted gold radial sampled from the same Coin Frenzy palette
+     * as the button itself, so the coins read as the same material. */
+    background: radial-gradient(
+      circle at 32% 28%,
+      #fff5d0 0%,
+      var(--cf-gold-pale) 22%,
+      var(--cf-gold-light) 48%,
+      var(--cf-gold-medium) 78%,
+      var(--cf-gold-deep) 100%
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 245, 200, 0.9),
+      inset 0 -1px 0 rgba(80, 50, 10, 0.55),
+      0 0 8px rgba(230, 181, 88, 0.5),
+      0 1px 2px rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    animation: cf-shop-coin-fall 5s cubic-bezier(0.42, 0, 0.5, 1) infinite;
+    will-change: transform, opacity;
+  }
+  .cf-shop-button__coin--1 {
+    left: 12%;
+    animation-delay: 0s;
+  }
+  .cf-shop-button__coin--2 {
+    left: 28%;
+    width: 7px;
+    height: 7px;
+    animation-delay: 0.7s;
+    animation-duration: 5.6s;
+  }
+  .cf-shop-button__coin--3 {
+    left: 44%;
+    width: 10px;
+    height: 10px;
+    animation-delay: 1.5s;
+    animation-duration: 4.6s;
+  }
+  .cf-shop-button__coin--4 {
+    left: 60%;
+    width: 8px;
+    height: 8px;
+    animation-delay: 2.3s;
+    animation-duration: 5.2s;
+  }
+  .cf-shop-button__coin--5 {
+    left: 74%;
+    width: 7px;
+    height: 7px;
+    animation-delay: 3.1s;
+    animation-duration: 4.8s;
+  }
+  .cf-shop-button__coin--6 {
+    left: 88%;
+    width: 9px;
+    height: 9px;
+    animation-delay: 3.8s;
+    animation-duration: 5s;
+  }
+  /* Tumble: born behind the button (invisible), peeks out the bottom
+   * edge at ~32% of the cycle, falls ~30px below the button with a
+   * slight horizontal drift and a full rotation, fades before reaching
+   * deep into the content area below the top bar. */
+  @keyframes cf-shop-coin-fall {
+    0% {
+      opacity: 0;
+      transform: translate(0, -6px) scale(0.5) rotate(0deg);
+    }
+    20% {
+      opacity: 0;
+      transform: translate(0, 4px) scale(0.7) rotate(70deg);
+    }
+    34% {
+      opacity: 1;
+      transform: translate(1px, 14px) scale(1) rotate(150deg);
+    }
+    62% {
+      opacity: 0.95;
+      transform: translate(-2px, 28px) scale(0.94) rotate(280deg);
+    }
+    88% {
+      opacity: 0.4;
+      transform: translate(2px, 40px) scale(0.78) rotate(400deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(0, 48px) scale(0.62) rotate(460deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-shop-button__coin {
+      animation: none;
+      opacity: 0;
+    }
+  }
+
+  /* Frosted gold pill border with subtle inner glow. */
+  .cf-gold-border {
+    border: 1px solid var(--cf-gold-medium);
+    box-shadow:
+      0 0 0 1px rgba(204, 153, 51, 0.15),
+      inset 0 0 12px rgba(204, 153, 51, 0.06);
+  }
+
+  /* Active sidebar nav pill — legacy full gold ribbon with dark text. */
+  .cf-nav-active {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      90deg,
+      #6b4f1a 0%,
+      #e1b144 25%,
+      #af8332 50%,
+      #feeb95 75%,
+      #6b4f1a 100%
+    );
+    color: #121212;
+    isolation: isolate;
+  }
+  .cf-nav-active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.22) 50%,
+      transparent 70%
+    );
+    transform: translateX(-100%);
+    animation: cf-nav-sheen 3.6s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .cf-nav-active::after {
+    content: none;
+  }
+  .cf-nav-active > * {
+    position: relative;
+    z-index: 1;
+  }
+  @keyframes cf-nav-sheen {
+    0% {
+      transform: translateX(-100%);
+    }
+    55% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes cf-nav-bar-pulse {
+    0%,
+    100% {
+      opacity: 0.85;
+      box-shadow:
+        0 0 6px rgba(245, 208, 102, 0.45),
+        0 0 12px rgba(223, 168, 61, 0.25);
+    }
+    50% {
+      opacity: 1;
+      box-shadow:
+        0 0 12px rgba(255, 230, 150, 0.85),
+        0 0 22px rgba(245, 208, 102, 0.5);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-nav-active::before {
+      animation: none;
+      opacity: 0;
+    }
+    .cf-nav-active::after {
+      animation: none;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Premium account-page card. Used by every account subpage so they
+     all share the same minted-metal surface. The treatment is:
+     - flat near-black base
+     - hairline gold ring at rgba/14% so it whispers
+     - 1px top inner highlight at gold/6% — the "minted" gleam
+     - 1px bottom inner shadow at black/30%
+     - a subtle gold accent line at the very top via ::before (1px
+       horizontal gradient from gold/0 → gold/35% → gold/0)
+     ───────────────────────────────────────────────────────────────── */
+  .cf-account-card {
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0) 45%),
+      linear-gradient(180deg, #131313 0%, #0b0b0b 100%);
+    border: 1px solid rgba(223, 168, 61, 0.14);
+    border-radius: 12px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 245, 200, 0.06),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+      0 1px 0 rgba(0, 0, 0, 0.5),
+      0 10px 30px -16px rgba(0, 0, 0, 0.7);
+  }
+  .cf-account-card::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(245, 208, 102, 0.45) 50%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Fade-up entrance animation. Used by account-page cards so they
+     don't pop in flatly. Single class, no JS — purely cosmetic.
+     Staggered with --cf-fade-delay on each card for a cascading feel.
+     ───────────────────────────────────────────────────────────────── */
+  @keyframes cf-fade-up {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  .cf-fade-up {
+    opacity: 0;
+    animation: cf-fade-up 0.45s ease-out forwards;
+    animation-delay: var(--cf-fade-delay, 0ms);
+    will-change: opacity, transform;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-fade-up {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Account-subnav active tile — bright gold inset, white icon/text,
+     subtle outer glow. Matches the live coinfrenzy.com /settings tabs.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-subnav-active {
+    background: linear-gradient(
+      180deg,
+      rgba(245, 208, 102, 0.18) 0%,
+      rgba(198, 144, 50, 0.12) 100%
+    );
+    border-color: var(--cf-gold-medium) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 245, 200, 0.18),
+      inset 0 -1px 0 rgba(80, 50, 10, 0.25),
+      0 0 22px -4px rgba(245, 208, 102, 0.25);
+  }
+
+  /* Card with subtle gold border used on game tiles. */
+  .cf-card-gold {
+    background: var(--cf-bg-card);
+    border: 1px solid rgba(204, 153, 51, 0.5);
+    transition:
+      transform 0.18s ease,
+      border-color 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+  .cf-card-gold:hover {
+    transform: translateY(-2px);
+    border-color: var(--cf-gold-light);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.6),
+      0 0 0 1px rgba(235, 205, 124, 0.25);
+  }
+
+  /* Marquee animation for the Live Wins ticker. */
+  @keyframes cf-marquee {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+  .cf-marquee {
+    display: flex;
+    width: max-content;
+    animation: cf-marquee 90s linear infinite;
+  }
+  .cf-marquee:hover {
+    animation-play-state: paused;
+  }
+
+  /*
+   * Step-ticker for the Live Wins rail. The motion is driven from JS —
+   * the React component updates `--cf-step-duration` and the strip's
+   * `transform` on every tick. Each tick picks a weighted-random
+   * interval so the stream feels alive: most ticks land in the
+   * "normal" band (~1.1-1.9 s), with occasional fast bursts (~0.4-0.7 s)
+   * and slow lulls (~2.3-3.0 s). Never pauses on hover.
+   */
+  .cf-step-ticker {
+    display: flex;
+    width: max-content;
+    margin-left: -0.5rem;
+    touch-action: pan-y pinch-zoom;
+    will-change: transform;
+    transition: transform var(--cf-step-duration, 1500ms) linear;
+  }
+
+  @media (min-width: 640px) {
+    .cf-step-ticker {
+      margin-left: -0.75rem;
+    }
+  }
+
+  /* Shared player-shell content column — header, main, and page bodies
+     all use the same max width + horizontal gutter so the top bar,
+     Live Wins rail, hero, and game grids share one vertical edge. */
+  .cf-player-content {
+    @apply w-full max-w-[1580px] px-4 mx-auto space-y-3 pb-6;
+  }
+
+  /* Lets horizontal scrollers (category tabs, etc.) bleed to the
+     content gutter edge while staying aligned with cf-player-content. */
+  .cf-player-scroll-bleed {
+    @apply -mx-3 px-3 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 2xl:-mx-10 2xl:px-10;
+  }
+
+  /* Slow auto-scroll for the top "All players get 30 coins" promo strip. */
+  @keyframes cf-marquee-fast {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+  .cf-marquee-fast {
+    display: flex;
+    width: max-content;
+    animation: cf-marquee-fast 45s linear infinite;
+  }
+
+  /* Legacy top offer marquee. Fixed above the player header with the
+     same 80px desktop / 45px mobile height used by coinfrenzy.com. */
+  @keyframes cf-top-offer-scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-33.333%);
+    }
+  }
+  @keyframes cf-top-offer-shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  .cf-top-offer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    height: 80px;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(107, 79, 26, 0.3);
+    background: rgba(10, 10, 10, 0.85);
+    box-shadow:
+      0 4px 30px rgba(0, 0, 0, 0.5),
+      0 0 20px rgba(225, 177, 68, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .cf-top-offer::before,
+  .cf-top-offer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 2;
+    width: 120px;
+    pointer-events: none;
+  }
+  .cf-top-offer::before {
+    left: 0;
+    background: linear-gradient(to right, #0a0a0a 0%, transparent 100%);
+  }
+  .cf-top-offer::after {
+    right: 0;
+    background: linear-gradient(to left, #0a0a0a 0%, transparent 100%);
+  }
+  .cf-top-offer__track {
+    display: flex;
+    align-items: center;
+    width: max-content;
+    white-space: nowrap;
+    animation: cf-top-offer-scroll 45s linear infinite;
+    will-change: transform;
+  }
+  .cf-top-offer__track:hover {
+    animation-play-state: paused;
+  }
+  .cf-top-offer__item {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 16px;
+    padding: 0 32px;
+    color: #eeeefb;
+    font-family: var(--cf-font-body);
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    text-transform: uppercase;
+  }
+  .cf-top-offer__item::after {
+    content: '';
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    margin-left: 48px;
+    background: linear-gradient(
+      90deg,
+      #6b4f1a 0%,
+      #e1b144 25%,
+      #af8332 50%,
+      #feeb95 75%,
+      #6b4f1a 100%
+    );
+    clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+    opacity: 0.8;
+    filter: drop-shadow(0 0 5px rgba(225, 177, 68, 0.4));
+  }
+  .cf-top-offer__icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 0 6px rgba(225, 177, 68, 0.45));
+  }
+  .cf-top-offer__highlight {
+    background: linear-gradient(
+      90deg,
+      #6b4f1a 0%,
+      #e1b144 25%,
+      #af8332 50%,
+      #feeb95 75%,
+      #6b4f1a 100%
+    );
+    background-clip: text;
+    background-size: 200% 100%;
+    color: transparent;
+    animation: cf-top-offer-shimmer 4s ease infinite;
+  }
+  .cf-top-offer__highlight--sc {
+    background: none;
+    color: #25f54b;
+    text-shadow: 0 0 10px rgba(37, 245, 75, 0.35);
+    animation: none;
+  }
+  .cf-top-offer__cta {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid hsl(39 56% 44%);
+    border-radius: 8px;
+    padding: 6px 18px;
+    background: linear-gradient(
+      90deg,
+      #6b4f1a 0%,
+      #e1b144 25%,
+      #af8332 50%,
+      #feeb95 75%,
+      #6b4f1a 100%
+    );
+    background-size: 200% 100%;
+    box-shadow: 0 0 12px rgba(225, 177, 68, 0.22);
+    color: #121212;
+    font-family: var(--cf-font-body);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    transition:
+      background-position 0.4s ease,
+      box-shadow 0.3s ease;
+  }
+  .cf-top-offer__cta:hover {
+    background-position: 100% 0;
+    box-shadow: 0 0 22px rgba(225, 177, 68, 0.45);
+  }
+  @media (max-width: 767.98px) {
+    .cf-top-offer {
+      height: 45px;
+    }
+    .cf-top-offer::before,
+    .cf-top-offer::after {
+      width: 60px;
+    }
+    .cf-top-offer__item {
+      gap: 12px;
+      padding: 0 24px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .cf-top-offer__item::after {
+      width: 14px;
+      height: 14px;
+      margin-left: 24px;
+    }
+    .cf-top-offer__icon svg {
+      width: 24px;
+      height: 24px;
+    }
+    .cf-top-offer__cta {
+      padding: 4px 18px;
+      font-size: 11px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-top-offer__track,
+    .cf-top-offer__highlight {
+      animation: none;
+    }
+  }
+
+  /*
+   * Chroma-key filter — knocks the green-screen background out of the
+   * raw fox JPGs the brand team provided. Applied via the
+   * `cf-chroma-key` class. The threshold is tuned for the specific
+   * green saturation in /reference/.../CF Fox Green Screen Assets/.
+   */
+  .cf-chroma-key {
+    -webkit-mask-image: url(#cf-chroma-key-mask);
+    mask-image: url(#cf-chroma-key-mask);
+  }
+  img.cf-chroma-key {
+    filter: url(#cf-chroma-key);
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Brand lockup — sidebar logo with soft gold halo and twinkling
+     stars on either side. Ported VERBATIM from the /welcome + /dalt
+     funnel headers (see CoinFrenzy Welcome/styles.css §"Header logo"
+     and CF x Degen Dalt Giveway funnel/styles.css §"Logo lockup").
+     Three sparkles, breathing halo behind a transparent wordmark.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-brand {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    padding: 4px 10px;
+    text-decoration: none;
+    transition:
+      filter 0.25s ease,
+      transform 0.25s ease;
+  }
+  .cf-brand::before {
+    content: '';
+    position: absolute;
+    inset: -32% -10%;
+    background: radial-gradient(closest-side, rgba(242, 201, 92, 0.22), transparent 72%);
+    filter: blur(16px);
+    pointer-events: none;
+    z-index: -1;
+    transform-origin: center;
+    animation: cf-brand-halo 5.5s ease-in-out infinite;
+  }
+  .cf-brand:hover {
+    filter: brightness(1.06) drop-shadow(0 0 18px rgba(235, 205, 124, 0.3));
+  }
+  .cf-brand img {
+    display: block;
+    width: auto;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
+    -webkit-user-select: none;
+    user-select: none;
+    image-rendering: -webkit-optimize-contrast;
+  }
+  .cf-brand__sparkle {
+    position: absolute;
+    color: var(--cf-gold-light);
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 0.7rem;
+    pointer-events: none;
+    opacity: 0;
+    text-shadow: 0 0 8px rgba(245, 210, 115, 0.6);
+    animation: cf-brand-sparkle 4s ease-in-out infinite;
+    z-index: 1;
+  }
+  .cf-brand__sparkle--1 {
+    top: 14%;
+    left: -6px;
+    animation-delay: 0s;
+  }
+  .cf-brand__sparkle--2 {
+    top: 62%;
+    right: -2px;
+    font-size: 0.6rem;
+    animation-delay: 1.4s;
+  }
+  .cf-brand__sparkle--3 {
+    top: 30%;
+    right: 18%;
+    font-size: 0.55rem;
+    animation-delay: 2.6s;
+  }
+  @keyframes cf-brand-halo {
+    0%,
+    100% {
+      opacity: 0.85;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+  }
+  @keyframes cf-brand-sparkle {
+    0%,
+    100% {
+      opacity: 0;
+      transform: scale(0.4) rotate(0deg);
+    }
+    40% {
+      opacity: 0.95;
+      transform: scale(1) rotate(60deg);
+    }
+    60% {
+      opacity: 0.7;
+      transform: scale(0.95) rotate(120deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-brand::before,
+    .cf-brand__sparkle {
+      animation: none;
+      opacity: 0.5;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Top-bar lightning bolt — Pixar-lamp-style hop.
+     The bolt rests still for most of the cycle, then performs a small
+     crouch → launch → peak hover → landing squash → settle, exactly
+     like the Luxo lamp jumping on the "I". Anchored to the bottom so
+     the squash/stretch reads as a creature standing on a surface, not
+     a free-floating sprite. Glow brightens at the peak of the hop.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-bolt-icon {
+    filter: drop-shadow(0 0 3px rgba(245, 175, 35, 0.3));
+    animation: cf-bolt-hop 3.6s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+    transform-origin: 50% 100%;
+    will-change: transform, filter;
+  }
+  @keyframes cf-bolt-hop {
+    /* Long rest so the hop feels deliberate (Pixar anticipation). */
+    0%,
+    60% {
+      transform: translateY(0) scale(1, 1);
+      filter: drop-shadow(0 0 3px rgba(245, 175, 35, 0.28));
+    }
+    /* Anticipation: tiny crouch — bolt squashes vertically, widens. */
+    66% {
+      transform: translateY(1px) scale(1.06, 0.9);
+      filter: drop-shadow(0 0 5px rgba(255, 195, 80, 0.45));
+    }
+    /* Launch: stretch upward as it leaves the floor. */
+    73% {
+      transform: translateY(-3px) scale(0.94, 1.09);
+      filter: drop-shadow(0 0 8px rgba(255, 210, 100, 0.72));
+    }
+    /* Peak hover with maximum glow — the "I'm in the air" moment. */
+    79% {
+      transform: translateY(-5px) scale(0.98, 1.04);
+      filter: drop-shadow(0 0 11px rgba(255, 215, 110, 0.92));
+    }
+    /* Landing squash: bottom hits, top compresses. */
+    87% {
+      transform: translateY(0) scale(1.07, 0.92);
+      filter: drop-shadow(0 0 6px rgba(255, 200, 90, 0.55));
+    }
+    /* Tiny rebound. */
+    94% {
+      transform: translateY(-1px) scale(0.99, 1.02);
+      filter: drop-shadow(0 0 4px rgba(245, 175, 35, 0.38));
+    }
+    /* Settled. */
+    100% {
+      transform: translateY(0) scale(1, 1);
+      filter: drop-shadow(0 0 3px rgba(245, 175, 35, 0.28));
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-bolt-icon {
+      animation: none;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Premium top-bar widget shell — used by the search button, lightning
+     button, balance pill, and user-menu trigger. The live coinfrenzy.com
+     widgets read as solid black machined metal with a hair-thin gold
+     bevel; we replicate that with:
+     - flat near-black base (#161616 → #0b0b0b) instead of grey
+     - 1px hairline outer ring at rgba gold/16% so it whispers, not shouts
+     - 1px inner-top highlight at gold/6% (the "minted" gleam)
+     - 1px inner-bottom shadow at black/40% (the "weight" line)
+     The padding/height/radius are owned by the consumer — this class is
+     ONLY the surface treatment, so it composes cleanly with any size.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-widget {
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0%, rgba(0, 0, 0, 0) 50%),
+      linear-gradient(180deg, #161616 0%, #0b0b0b 100%);
+    border: 1px solid rgba(223, 168, 61, 0.16);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 245, 200, 0.06),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+      0 1px 0 rgba(0, 0, 0, 0.5),
+      0 6px 18px -10px rgba(0, 0, 0, 0.7);
+    transition:
+      border-color 0.16s ease,
+      box-shadow 0.16s ease,
+      filter 0.16s ease;
+  }
+  .cf-widget:hover {
+    border-color: rgba(223, 168, 61, 0.36);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 245, 200, 0.1),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.45),
+      0 0 0 1px rgba(223, 168, 61, 0.16),
+      0 8px 24px -10px rgba(0, 0, 0, 0.8);
+  }
+  .cf-widget:active {
+    filter: brightness(0.95);
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Click coin-burst easter egg — ported VERBATIM from the funnel
+     site (CoinFrenzy Welcome/styles.css §"Coin burst"). Each click
+     spawns a half-fan of 6–10 gold coins that arc outward, rotate
+     360°, and fade. Position is set in JS via top/left and the
+     translate offset is read from the --cf-burst-bx / --cf-burst-by
+     CSS variables, so a single keyframe drives every coin.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-coin-burst {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    animation: cf-coin-burst 0.85s cubic-bezier(0.22, 0.78, 0.32, 1) forwards;
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+    will-change: transform, opacity;
+  }
+  .cf-coin-burst svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  @keyframes cf-coin-burst {
+    0% {
+      transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+      opacity: 0;
+    }
+    18% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate(
+          calc(-50% + var(--cf-burst-bx, 0px)),
+          calc(-50% + var(--cf-burst-by, -60px))
+        )
+        scale(1.1) rotate(360deg);
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-coin-burst {
+      display: none;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Glowing-pile-of-gold SHOP sidebar glyph.
+
+     - `.cf-coin-pile__halo`     — radial halo behind the pile, opacity
+                                    breathes 0.45 ↔ 1.0 over 3.4s.
+     - `.cf-coin-pile__sparkle`  — three sparkles around the pile that
+                                    twinkle at staggered intervals so the
+                                    motion never looks mechanical.
+     - On hover the halo intensifies and the pile lifts 0.5px — used by
+       the sidebar item parent (`.cf-shop-pile-host:hover`) for a tasty
+       interaction without recomputing layout.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-coin-pile {
+    overflow: visible;
+    filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.55));
+    transition:
+      filter 250ms ease-out,
+      transform 250ms ease-out;
+  }
+  .cf-coin-pile__halo {
+    transform-origin: 50% 60%;
+    animation: cf-coin-pile-breathe 3.4s ease-in-out infinite;
+    will-change: opacity, transform;
+  }
+  @keyframes cf-coin-pile-breathe {
+    0%,
+    100% {
+      opacity: 0.5;
+      transform: scale(0.92);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+  }
+
+  .cf-coin-pile__sparkle {
+    transform-origin: center;
+    transform-box: fill-box;
+    opacity: 0;
+    animation: cf-coin-pile-twinkle 2.6s ease-in-out infinite;
+    will-change: opacity, transform;
+    filter: drop-shadow(0 0 1.2px rgba(255, 245, 200, 0.9));
+  }
+  .cf-coin-pile__sparkle--a {
+    animation-delay: 0.1s;
+  }
+  .cf-coin-pile__sparkle--b {
+    animation-delay: 1s;
+    animation-duration: 3.1s;
+  }
+  .cf-coin-pile__sparkle--c {
+    animation-delay: 1.7s;
+    animation-duration: 2.2s;
+  }
+  @keyframes cf-coin-pile-twinkle {
+    0%,
+    100% {
+      opacity: 0;
+      transform: scale(0.7);
+    }
+    40% {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+  }
+
+  /* Hover treatment: when the sidebar SHOP row is hovered, brighten
+     the halo + tiny lift on the pile. The selector reaches *into* the
+     icon from the row, so the row class is `group/shop-pile` and we
+     scope the animation override to its hover. */
+  .group\/shop-pile:hover .cf-coin-pile {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55))
+      drop-shadow(0 0 6px rgba(245, 208, 102, 0.55));
+    transform: translateY(-0.5px);
+  }
+  .group\/shop-pile:hover .cf-coin-pile__halo {
+    animation-duration: 2.2s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cf-coin-pile__halo,
+    .cf-coin-pile__sparkle {
+      animation: none;
+      opacity: 1;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Toast notification entrance — slides in from the right with a
+     subtle bounce so important confirmations land cleanly. Auto-
+     dismissal is handled in the React layer; this is purely cosmetic.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-toast {
+    animation: cf-toast-in 280ms cubic-bezier(0.22, 0.78, 0.32, 1) both;
+    will-change: transform, opacity;
+  }
+  @keyframes cf-toast-in {
+    0% {
+      opacity: 0;
+      transform: translate3d(20px, 0, 0) scale(0.96);
+    }
+    60% {
+      opacity: 1;
+      transform: translate3d(-4px, 0, 0) scale(1.01);
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-toast {
+      animation: none;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Shop modal entrance + bloom.
+
+     - `.cf-shop-modal-enter` — soft fade + scale-in for the modal frame
+       so the popup never "jolts" onto the screen.
+     - `.cf-shop-modal-overlay-enter` — overlay's backdrop fades up to
+       match (slightly faster so the framing is established before the
+       card lands).
+     - `.cf-shop-content-fade` — crossfades the body content (loader →
+       full panels). When the prefetched packages are already cached we
+       use this for a butter-smooth swap into the real content.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-shop-modal-enter {
+    animation: cf-shop-modal-in 240ms cubic-bezier(0.22, 0.78, 0.32, 1) both;
+    will-change: transform, opacity;
+  }
+  @keyframes cf-shop-modal-in {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0) scale(0.96);
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+  .cf-shop-modal-overlay-enter {
+    animation: cf-shop-overlay-in 180ms ease-out both;
+  }
+  @keyframes cf-shop-overlay-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  .cf-shop-content-fade {
+    animation: cf-shop-content-fade-in 220ms ease-out both;
+    will-change: opacity, transform;
+  }
+  @keyframes cf-shop-content-fade-in {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 4px, 0);
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-shop-modal-enter,
+    .cf-shop-modal-overlay-enter,
+    .cf-shop-content-fade {
+      animation: none;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Shop loader — Coin Frenzy themed "thinking" state for the moment
+     between SHOP click and packages-ready. Reuses the gold pile from
+     `cf-coin-pile` but adds:
+     - `.cf-shop-loader-bob`  — the whole pile gently bobs up/down
+     - `.cf-shop-loader-ring` — a rotating golden ring behind the pile
+     - `.cf-shop-loader-glow` — radial breathing glow that pulses faster
+       than the sidebar variant so the loader feels "active" not idle.
+     - `.cf-shop-loader-caption` — soft fade pulse on the caption.
+
+     All animations are CSS-only and honour prefers-reduced-motion.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-shop-loader-bob {
+    animation: cf-shop-loader-bob 2.1s ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes cf-shop-loader-bob {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -6px, 0);
+    }
+  }
+  .cf-shop-loader-ring {
+    transform-origin: 50% 50%;
+    animation: cf-shop-loader-spin 6s linear infinite;
+    will-change: transform;
+  }
+  @keyframes cf-shop-loader-spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  .cf-shop-loader-glow {
+    animation: cf-shop-loader-glow 2.1s ease-in-out infinite;
+    transform-origin: center;
+    will-change: opacity, transform;
+  }
+  @keyframes cf-shop-loader-glow {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(0.92);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+  }
+  .cf-shop-loader-caption {
+    animation: cf-shop-loader-caption 2.1s ease-in-out infinite;
+    will-change: opacity;
+  }
+  @keyframes cf-shop-loader-caption {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-shop-loader-bob,
+    .cf-shop-loader-ring,
+    .cf-shop-loader-glow,
+    .cf-shop-loader-caption {
+      animation: none;
+    }
+    .cf-shop-loader-glow {
+      opacity: 0.8;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Skeleton shimmer — used by every `loading.tsx` and any
+     "still-fetching" placeholder. The shimmer is a gold sheen swept
+     across a dark gradient base so it reads as "CoinFrenzy chrome
+     thinking" rather than "boring grey skeleton". Honours
+     prefers-reduced-motion. Per-tile animation-delay lets us cascade
+     the shimmer across a grid for a wave effect.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(90deg, transparent 0%, rgba(245, 208, 102, 0.05) 50%, transparent 100%),
+      var(--cf-bg-elevated);
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    background-position: 200% 0;
+    border: 1px solid color-mix(in srgb, var(--cf-border-default) 60%, transparent);
+    animation: cf-skeleton-sweep 1500ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    will-change: background-position;
+  }
+  @keyframes cf-skeleton-sweep {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+  .cf-skeleton-page > * + * {
+    animation-delay: inherit;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-skeleton-shimmer {
+      animation: none;
+      background: var(--cf-bg-elevated);
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Balance pill pulse — fires when a positive delta > threshold lands
+     (Item 1 of the UX polish audit). One quick scale up + gold glow
+     ring; auto-resolves in ~600ms. NEVER runs on initial mount.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-balance-pulse {
+    animation: cf-balance-pulse 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes cf-balance-pulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(230, 181, 88, 0.55);
+    }
+    35% {
+      transform: scale(1.06);
+      box-shadow: 0 0 0 6px rgba(230, 181, 88, 0.25);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(230, 181, 88, 0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-balance-pulse {
+      animation: none;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Game-tile lift — applied while a tile is being clicked, just
+     before the route navigation runs. The tile gets a momentary
+     "promoted off the grid" treatment so the click feels like it
+     LANDED before the game's iframe finishes loading.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-tile-lift {
+    will-change: transform, box-shadow;
+    transform-origin: center;
+    animation: cf-tile-lift 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes cf-tile-lift {
+    0% {
+      transform: scale(1) translateY(0);
+      box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+    40% {
+      transform: scale(1.06) translateY(-6px);
+      box-shadow:
+        0 24px 60px -12px rgba(0, 0, 0, 0.85),
+        0 0 28px rgba(245, 208, 102, 0.35);
+    }
+    100% {
+      transform: scale(1.1) translateY(-10px);
+      box-shadow:
+        0 36px 90px -16px rgba(0, 0, 0, 0.9),
+        0 0 36px rgba(245, 208, 102, 0.5);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-tile-lift {
+      animation: none;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Favorites star — docs/03 §8.5.
+     On touch devices ":hover" never fires, so the Tailwind
+     `group-hover:opacity-100` rule would leave the star permanently
+     invisible. This media query forces full visibility on coarse-
+     pointer devices, matching the live-site behavior the founder
+     showed in the prompt screenshot. The desktop reveal-on-hover
+     behaviour is preserved via Tailwind classes on the button.
+     ───────────────────────────────────────────────────────────────── */
+  @media (hover: none), (pointer: coarse) {
+    .cf-tile-star {
+      opacity: 1 !important;
+    }
+  }
+
+  /* Dimmed lobby behind a lifting tile. */
+  .cf-tile-launching {
+    animation: cf-lobby-dim 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes cf-lobby-dim {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0.6;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-tile-launching {
+      animation: none;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Iframe gold-shimmer skeleton — the placeholder behind a game's
+     iframe while it loads. Larger / more dramatic than the page-level
+     skeleton because it's intentionally a hero moment.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-iframe-skeleton {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at center, rgba(245, 208, 102, 0.08) 0%, transparent 60%),
+      linear-gradient(180deg, var(--cf-bg-elevated) 0%, var(--cf-bg-base) 100%);
+  }
+  .cf-iframe-skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(245, 208, 102, 0.18) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    animation: cf-iframe-shimmer 1600ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+  @keyframes cf-iframe-shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-iframe-skeleton::after {
+      animation: none;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Inline Finix mock checkout — dark theme used when the Shop modal
+     embeds the mock-vendor page in an iframe. The visual goal is for
+     the player to never feel like they left the website, so we mirror
+     the gold-on-black aesthetic of the modal itself.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-finix.cf-finix--dark {
+    color: #fff;
+  }
+  .cf-finix__panel {
+    border-radius: 10px;
+    border: 1px solid var(--cf-border-default);
+    background: var(--cf-bg-elevated);
+    padding: 16px;
+  }
+  .cf-finix__label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cf-gold-light);
+    margin-bottom: 4px;
+  }
+  .cf-finix__input {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px;
+    border-radius: 6px;
+    border: 1px solid var(--cf-border-default);
+    background: var(--cf-bg-base);
+    color: #fff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+  }
+  .cf-finix__input::placeholder {
+    color: var(--cf-gray-light);
+  }
+  .cf-finix__input:focus {
+    outline: none;
+    border-color: var(--cf-gold-medium);
+  }
+  .cf-finix__section-title {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--cf-gold-light);
+    margin-bottom: 8px;
+  }
+  .cf-finix__outcome {
+    height: 34px;
+    border-radius: 6px;
+    border: 1px solid var(--cf-border-default);
+    background: var(--cf-bg-base);
+    color: var(--cf-gray-light);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: capitalize;
+    transition: all 150ms ease;
+    cursor: pointer;
+  }
+  .cf-finix__outcome:hover {
+    color: #fff;
+    border-color: var(--cf-gold-medium);
+  }
+  .cf-finix__outcome--active {
+    color: var(--cf-gold-light);
+    border-color: var(--cf-gold-medium);
+    background: linear-gradient(180deg, #1a1305 0%, var(--cf-bg-elevated) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 245, 200, 0.1);
+  }
+  .cf-finix__error {
+    border-radius: 6px;
+    border: 1px solid var(--cf-red-dark);
+    background: #2a0608;
+    color: var(--cf-red-primary);
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .cf-finix__btn {
+    height: 42px;
+    padding: 0 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      transform 150ms ease,
+      box-shadow 150ms ease,
+      opacity 150ms ease;
+  }
+  .cf-finix__btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .cf-finix__btn--ghost {
+    border: 1px solid var(--cf-border-default);
+    background: var(--cf-bg-base);
+    color: #fff;
+  }
+  .cf-finix__btn--ghost:hover:not(:disabled) {
+    border-color: var(--cf-gold-medium);
+    background: var(--cf-bg-card-hover);
+  }
+  .cf-finix__btn--gold {
+    border: none;
+    color: #1a1300;
+    background: linear-gradient(180deg, #fff1bf 0%, #e6b558 50%, #8a5f17 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 245, 200, 0.35),
+      0 4px 12px rgba(245, 208, 102, 0.2);
+  }
+  .cf-finix__btn--gold:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 245, 200, 0.45),
+      0 8px 22px -6px rgba(245, 208, 102, 0.55);
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Promo banner (`packages/ui/src/player/PromoBanner.tsx`).
+
+     Each banner sits inside a gold-gradient framed card. The frame is
+     painted via a 1.5px outer ring (background-clip: padding-box +
+     gradient border trick), softens on idle and intensifies on hover
+     with a paired gold sheen sweeping diagonally across the surface.
+     Corner gleams quietly twinkle on idle.
+
+     Honors prefers-reduced-motion by freezing the sweep + twinkle so
+     reduced-motion users still get the static gold framing.
+     ───────────────────────────────────────────────────────────────── */
+
+  .cf-promo-card {
+    position: relative;
+    border-radius: 14px;
+    background:
+      linear-gradient(var(--cf-bg-card), var(--cf-bg-card)) padding-box,
+      linear-gradient(
+          135deg,
+          rgba(252, 229, 168, 0.55) 0%,
+          rgba(230, 181, 88, 0.85) 22%,
+          rgba(138, 95, 23, 0.6) 50%,
+          rgba(230, 181, 88, 0.85) 80%,
+          rgba(252, 229, 168, 0.55) 100%
+        )
+        border-box;
+    border: 1.5px solid transparent;
+    box-shadow:
+      0 1px 0 rgba(252, 229, 168, 0.08) inset,
+      0 18px 38px -22px rgba(0, 0, 0, 0.9),
+      0 8px 24px -16px rgba(230, 181, 88, 0.18);
+    transition:
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .cf-promo-card:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 1px 0 rgba(252, 229, 168, 0.12) inset,
+      0 24px 48px -22px rgba(0, 0, 0, 0.95),
+      0 12px 32px -14px rgba(230, 181, 88, 0.4);
+  }
+
+  /* Diagonal gold sweep that traverses the card on hover. Sits above
+     the image but below the badge / CTA so it gives a "polished
+     surface" feel without obscuring the labels. */
+  .cf-promo-sweep {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 240ms ease;
+  }
+  .cf-promo-card:hover .cf-promo-sweep {
+    opacity: 1;
+  }
+  .cf-promo-sweep::after {
+    content: '';
+    position: absolute;
+    top: -120%;
+    bottom: -120%;
+    left: -40%;
+    width: 28%;
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      rgba(252, 229, 168, 0) 35%,
+      rgba(252, 229, 168, 0.32) 50%,
+      rgba(252, 229, 168, 0) 65%,
+      transparent 100%
+    );
+    filter: blur(2px);
+    transform: rotate(8deg);
+    animation: cf-promo-sweep 1100ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes cf-promo-sweep {
+    0% {
+      transform: translateX(0) rotate(8deg);
+    }
+    100% {
+      transform: translateX(520%) rotate(8deg);
+    }
+  }
+
+  /* Tiny gold gleams inscribed at the four corners. Each pulses on
+     a staggered cycle so the card feels lightly "alive" even when
+     no one is hovering. */
+  .cf-promo-gleam {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+    opacity: 0.85;
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(252, 229, 168, 0.85) 0%,
+      rgba(230, 181, 88, 0.35) 38%,
+      rgba(230, 181, 88, 0) 70%
+    );
+    animation: cf-promo-twinkle 2600ms ease-in-out infinite;
+  }
+  .cf-promo-gleam--tl {
+    top: -6px;
+    left: -6px;
+  }
+  .cf-promo-gleam--tr {
+    top: -6px;
+    right: -6px;
+    animation-delay: 650ms;
+  }
+  .cf-promo-gleam--bl {
+    bottom: -6px;
+    left: -6px;
+    animation-delay: 1300ms;
+  }
+  .cf-promo-gleam--br {
+    bottom: -6px;
+    right: -6px;
+    animation-delay: 1950ms;
+  }
+  @keyframes cf-promo-twinkle {
+    0%,
+    100% {
+      opacity: 0.25;
+      transform: scale(0.9);
+    }
+    50% {
+      opacity: 0.95;
+      transform: scale(1.15);
+    }
+  }
+
+  /* Glass CTA pill anchored bottom-right over the banner image. The
+     backdrop blur keeps the label legible regardless of which part
+     of the underlying art it sits over. */
+  .cf-promo-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #1a1300;
+    background: linear-gradient(180deg, #fff1bf 0%, #e6b558 55%, #8a5f17 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 245, 200, 0.45),
+      0 6px 16px -6px rgba(230, 181, 88, 0.55),
+      0 2px 4px rgba(0, 0, 0, 0.45);
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease;
+  }
+  .cf-promo-card:hover .cf-promo-cta {
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 245, 200, 0.55),
+      0 10px 24px -6px rgba(230, 181, 88, 0.7),
+      0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Programmatic-mode helpers (no baked image) — a quiet starfield
+     and a slow ambient sparkle pulse to keep the gold typography
+     from sitting on a flat backdrop. */
+  .cf-promo-stars {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(rgba(252, 229, 168, 0.55) 1px, transparent 1.4px),
+      radial-gradient(rgba(252, 229, 168, 0.28) 1px, transparent 1.6px);
+    background-size:
+      64px 56px,
+      92px 86px;
+    background-position:
+      0 0,
+      40px 30px;
+    opacity: 0.45;
+  }
+  .cf-promo-spark {
+    animation: cf-promo-spark-pulse 3200ms ease-in-out infinite;
+  }
+  @keyframes cf-promo-spark-pulse {
+    0%,
+    100% {
+      opacity: 0.25;
+      transform: scale(0.85);
+    }
+    50% {
+      opacity: 0.9;
+      transform: scale(1.1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cf-promo-card {
+      transition: none;
+    }
+    .cf-promo-card:hover {
+      transform: none;
+    }
+    .cf-promo-sweep::after {
+      animation: none;
+    }
+    .cf-promo-gleam,
+    .cf-promo-spark {
+      animation: none;
+      opacity: 0.55;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Mobile chrome — app-shell tokens.
+
+     The mobile design treats the player layout as a native app: a
+     fixed top header (60px) and a fixed bottom nav (~70px + safe-area
+     inset). These tokens centralise the heights so every component
+     (page padding, modal positioning, bottom-sheet collapses) can
+     reference the same numbers without drifting.
+
+     `--cf-mobile-bottom-nav-h` lives on :root so utilities outside
+     this layer can read it too. The safe-area inset is added on top
+     so iPhones with a home indicator get extra breathing room.
+     ───────────────────────────────────────────────────────────────── */
+  /* Page-level padding so the last content row clears the bottom nav.
+     Apply to `<main>` (or any scroll container) on player surfaces;
+     desktop falls back to 0 because the nav is hidden ≥lg. */
+  .cf-mobile-nav-pad {
+    padding-bottom: calc(var(--cf-mobile-bottom-nav-h, 72px) + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 1280px) {
+    .cf-mobile-nav-pad {
+      padding-bottom: 0;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Bottom-sheet entrance.
+
+     The mobile flavour of every modal (Shop, Rewards, Spotlight) is a
+     sheet that slides up from the bottom edge with a slight settle.
+     Pairs with a quick overlay fade so the sheet never appears
+     floating against pure black before the dim establishes.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-sheet-enter {
+    animation: cf-sheet-in 280ms cubic-bezier(0.22, 0.78, 0.32, 1) both;
+    will-change: transform, opacity;
+  }
+  @keyframes cf-sheet-in {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 100%, 0);
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  .cf-sheet-overlay-enter {
+    animation: cf-sheet-overlay-in 200ms ease-out both;
+  }
+  @keyframes cf-sheet-overlay-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-sheet-enter,
+    .cf-sheet-overlay-enter {
+      animation: none;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Mobile bottom nav — the always-on 5-item app shell strip.
+
+     - `.cf-mobile-nav` provides the fixed positioning + safe-area
+       padding + the gold top rule that visually separates the nav
+       from page content.
+     - `.cf-mobile-nav-shop` is the centred raised SHOP affordance.
+       The button sits half-above the bar via translateY(-22%) so it
+       reads as the dominant action — same pattern as Instagram's
+       camera button, TikTok's "+" tab, etc.
+     - `.cf-mobile-nav-shop-ring` is the soft golden halo that
+       breathes around the SHOP button to draw the eye without
+       feeling busy. Honors prefers-reduced-motion.
+     ───────────────────────────────────────────────────────────────── */
+  .cf-mobile-nav {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .cf-mobile-nav-shop-ring {
+    animation: cf-mobile-nav-shop-ring 3.4s ease-in-out infinite;
+    will-change: opacity, transform;
+  }
+  @keyframes cf-mobile-nav-shop-ring {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.95;
+      transform: scale(1.04);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-mobile-nav-shop-ring {
+      animation: none;
+      opacity: 0.7;
+    }
+  }
+
+  /* When any modal/sheet is open we lock the document scroll. Adding
+     this on `<body>` is preferable to `overflow:hidden` alone because
+     iOS Safari otherwise rubber-bands the page underneath the sheet. */
+  .cf-no-scroll {
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+}
+
+/* The bottom-nav height token is set outside the `components` layer so
+   page-level utilities can read it directly via `var()`. Keeping it on
+   :root rather than the layer keeps it readable from inline styles
+   without a layer-order surprise. */
+:root {
+  --cf-mobile-bottom-nav-h: 72px;
+}

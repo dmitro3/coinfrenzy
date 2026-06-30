@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-06-11T07:15:12.311Z",
+  "totalAnalyzed": 935,
+  "archetypeCountsBefore": {
+    "lurker": 740,
+    "welcome": 14,
+    "casual": 30,
+    "loser": 151,
+    "winner": 0,
+    "hroller": 0,
+    "midwhale": 0,
+    "whale": 0
+  },
+  "archetypeCountsAfter": {
+    "lurker": 740,
+    "welcome": 14,
+    "casual": 30,
+    "loser": 151,
+    "winner": 0,
+    "hroller": 0,
+    "midwhale": 0,
+    "whale": 0
+  },
+  "reshaped": [],
+  "unchanged": 935,
+  "manualReview": [
+    {
+      "playerId": "N/A",
+      "email": "N/A (legacy ledger)",
+      "reason": "Found 5970 legacy seed-game-* ledger entries with broken RTP — deleted."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "frenzy-creator",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.5"
+  }
+}

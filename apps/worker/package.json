@@ -1,0 +1,37 @@
+{
+  "name": "@coinfrenzy/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'no tests yet' && exit 0",
+    "cutover:balance-compare": "node --env-file=../web/.env.local --import tsx src/scripts/balance-compare.ts",
+    "cutover:replay-window": "node --env-file=../web/.env.local --import tsx src/scripts/replay-window.ts",
+    "cutover:checklist": "node --import tsx src/scripts/cutover-checklist.ts"
+  },
+  "dependencies": {
+    "@coinfrenzy/config": "workspace:*",
+    "@coinfrenzy/core": "workspace:*",
+    "@coinfrenzy/db": "workspace:*",
+    "@sendgrid/mail": "^8.1.6",
+    "drizzle-orm": "^0.36.4",
+    "handlebars": "^4.7.9",
+    "inngest": "^3.27.0",
+    "twilio": "^6.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@typescript-eslint/eslint-plugin": "^8.6.0",
+    "@typescript-eslint/parser": "^8.6.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2"
+  }
+}
