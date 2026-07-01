@@ -17,7 +17,7 @@ interface AleaRoundEndPayload {
 export async function handleAleaRoundEnd(
   ctx: Context,
   payload: AleaRoundEndPayload,
-): Promise<void> {
+): Promise<{ status: 'success' | 'already_processed' } | void> {
   const rows = await ctx.db
     .select({
       id: schema.gameRounds.id,
@@ -43,6 +43,11 @@ export async function handleAleaRoundEnd(
     return
   }
 
+  if (round.status === 'resolved' || round.status === 'refunded') {
+    ctx.logger.info('alea_end_round_already_processed', { roundId: payload.roundId })
+    return { status: 'already_processed' }
+  }
+
   if (round.status === 'bet_placed') {
     await ctx.db
       .update(schema.gameRounds)
@@ -63,4 +68,6 @@ export async function handleAleaRoundEnd(
       callback_type: payload.callbackType ?? payload.type,
     },
   })
+
+  return { status: 'success' }
 }

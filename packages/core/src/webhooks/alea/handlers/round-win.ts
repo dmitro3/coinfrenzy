@@ -2,6 +2,7 @@ import { and, eq, sql } from 'drizzle-orm'
 
 import { schema } from '@coinfrenzy/db'
 import { isCoinCurrency } from '@coinfrenzy/config'
+import { TombstonedRoundError } from '../errors'
 
 import type { Context } from '../../../context'
 import { writeAuditEntry } from '../../../audit/index'
@@ -29,7 +30,7 @@ const BIG_WIN_THRESHOLD_MINOR = 100_000n * 10_000n // 100,000 SC equivalent
 export async function handleAleaRoundWin(
   ctx: Context,
   payload: AleaRoundWinPayload,
-): Promise<void> {
+): Promise<{ status: 'success' | 'already_processed' } | void> {
   const { roundId, amount, currency } = payload
   if (!isCoinCurrency(currency)) {
     ctx.logger.error('alea_round_win_bad_currency', { roundId, currency })
@@ -81,7 +82,7 @@ export async function handleAleaRoundWin(
   // Idempotency check: if round is already resolved, this is a duplicate win
   if (round.status === 'resolved') {
     ctx.logger.info('alea_round_win_duplicate', { roundId, txId: payload.txId })
-    return
+    return { status: 'already_processed' }
   }
 
   const startRollbackCheck = performance.now()
@@ -116,6 +117,10 @@ export async function handleAleaRoundWin(
   })
 
   if (rollbackByRoundRows[0] || txRollbackRows[0]) {
+    const reason =
+      txRollbackRows[0]?.action === 'webhook.alea.pending_rollback'
+        ? 'pending_rollback'
+        : 'rollback_marker'
     const startUpdateStatusRefunded = performance.now()
     await ctx.db
       .update(schema.gameRounds)
@@ -129,12 +134,9 @@ export async function handleAleaRoundWin(
       roundId,
       txId: payload.txId,
       playerId: round.playerId,
-      reason:
-        txRollbackRows[0]?.action === 'webhook.alea.pending_rollback'
-          ? 'pending_rollback'
-          : 'rollback_marker',
+      reason,
     })
-    return
+    throw new TombstonedRoundError(`Round already rolled back (${reason}): ${roundId}`)
   }
 
   const startUpdateStatusResolved = performance.now()
@@ -177,6 +179,10 @@ export async function handleAleaRoundWin(
     if (!result.ok) {
       ctx.logger.error('alea_round_win_ledger_failed', { roundId, error: result.error })
       throw new Error(`ledger_write_failed:${result.error.code}`)
+    }
+
+    if (result.value.status === 'duplicate') {
+      return { status: 'already_processed' }
     }
 
     void invalidateBalanceCache(round.playerId, currency).catch((error) => {
@@ -242,4 +248,6 @@ export async function handleAleaRoundWin(
   })
 
   await publishEvent(`private-player-${round.playerId}`, 'balance-update', { reason: 'win' })
+
+  return { status: 'success' }
 }

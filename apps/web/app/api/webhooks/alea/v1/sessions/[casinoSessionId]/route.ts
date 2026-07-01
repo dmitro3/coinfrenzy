@@ -54,7 +54,7 @@ export async function GET(
         code: 'SESSION_EXPIRED',
         message: 'Game Session Expired',
       },
-      { status: 403 },
+      { status: 500 },
     )
   }
 

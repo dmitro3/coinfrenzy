@@ -6,7 +6,7 @@ import { handleAleaRoundPromoPayout } from './handlers/round-promo-payout'
 import { handleAleaRoundEnd } from './handlers/round-end'
 import { handleAleaRoundWin } from './handlers/round-win'
 
-type HandlerFn = (payload: unknown, ctx2: { rawBody: string }) => Promise<void>
+type HandlerFn = (payload: unknown, ctx2: { rawBody: string }) => Promise<any>
 
 export function buildAleaHandlers(ctx: Context): Record<string, HandlerFn> {
   ctx.logger.info('======Alea handlers built======')
@@ -22,12 +22,12 @@ export function buildAleaHandlers(ctx: Context): Record<string, HandlerFn> {
     // 'session.closed': (payload) =>
     //   handleAleaSessionEvent(ctx, payload as Parameters<typeof handleAleaSessionEvent>[1]),
     'round.refund': (payload) =>
-      handleAleaRoundRefund(ctx, payload as Parameters<typeof handleAleaRoundRefund>[1]).then(
-        () => {},
-      ),
+      handleAleaRoundRefund(ctx, payload as Parameters<typeof handleAleaRoundRefund>[1]),
     'round.promoPayout': (payload) =>
       handleAleaRoundPromoPayout(ctx, payload as Parameters<typeof handleAleaRoundPromoPayout>[1]),
     'round.end': (payload) =>
       handleAleaRoundEnd(ctx, payload as Parameters<typeof handleAleaRoundEnd>[1]),
   }
 }
+
+export { TombstonedRoundError, InsufficientBalanceError } from './errors'

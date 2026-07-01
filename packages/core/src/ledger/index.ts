@@ -64,3 +64,5 @@ export {
   buildAdminAdjustment,
   buildAffiliatePayout,
 } from './transactions/index'
+
+export { getRedis } from './redis'

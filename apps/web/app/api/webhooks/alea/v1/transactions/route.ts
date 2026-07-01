@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { eq } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import { NextResponse, type NextRequest } from 'next/server'
 
 import { adapters, ledger, webhooks } from '@coinfrenzy/core'
@@ -9,6 +9,7 @@ import { schema } from '@coinfrenzy/db'
 import { handleAleaRoundRefund } from '@coinfrenzy/core/webhooks/alea/handlers/round-refund'
 
 import { buildWebhookContext } from '@/lib/webhook-context'
+import { updatePlayerDrift, getHPBalance, applyDriftToWallet } from '../drift'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -148,17 +149,34 @@ export async function POST(req: NextRequest): Promise<Response> {
     const promoCurrency = promoData.currency ?? requestCurrency
     const parsedPlayerId = payload.playerId?.split('_')?.[0]
     const parsedCurrency = payload.playerId?.split('_')?.[1]
-    if (!parsedPlayerId || !promoCurrency || !isCoinCurrency(promoCurrency)) {
+    if (!parsedPlayerId || !promoCurrency) {
       return NextResponse.json({ error: 'invalid_request' }, { status: 400 })
     }
+    if (!isCoinCurrency(promoCurrency)) {
+      return NextResponse.json(
+        {
+          status: 'ERROR',
+          code: 'INVALID_REQUEST',
+          message: 'Request Made with invalid currency.',
+        },
+        { status: 500 },
+      )
+    }
     if (parsedCurrency && parsedCurrency !== promoCurrency) {
-      return NextResponse.json({ error: 'invalid_request' }, { status: 400 })
+      return NextResponse.json(
+        {
+          status: 'ERROR',
+          code: 'INVALID_REQUEST',
+          message: 'Request Made with invalid currency.',
+        },
+        { status: 500 },
+      )
     }
 
     try {
       const handlers = webhooks.alea.buildAleaHandlers(ctx)
       const startPromoPayout = performance.now()
-      await handlers['round.promoPayout'](
+      const res = await handlers['round.promoPayout'](
         {
           type: 'round.promoPayout' as const,
           callbackType: txType,
@@ -177,22 +195,26 @@ export async function POST(req: NextRequest): Promise<Response> {
         elapsedMs: performance.now() - startPromoPayout,
       })
 
-      const startPromoBalance = performance.now()
-      const balance = await ledger.getBalance(ctx, parsedPlayerId, promoCurrency)
-      ctx.logger.info('alea_timing_log', {
-        step: 'ledger_get_balance_promo',
-        elapsedMs: performance.now() - startPromoBalance,
-      })
-      if (!balance.ok) return internalErrorResponse()
+      // Update drift!
+      if (res && res.status !== 'already_processed') {
+        const hpChange = promoData.amount
+        const dbChange = Number(ledger.toBigintAmount(promoData.amount)) / 10000
+        await updatePlayerDrift(parsedPlayerId, promoCurrency, hpChange - dbChange)
+        await applyDriftToWallet(parsedPlayerId, promoCurrency)
+      }
 
-      const balanceInMajorUnits = Number(balance.value.currentBalance) / 10000
-      return NextResponse.json({
+      const balance = await getHPBalance(parsedPlayerId, promoCurrency)
+      const response: Record<string, any> = {
         id: payload.id ?? null,
-        realBalance: balanceInMajorUnits,
+        realBalance: balance,
         bonusBalance: 0.0,
         realAmount: promoData.amount,
         bonusAmount: 0.0,
-      })
+      }
+      if (res && res.status === 'already_processed') {
+        response.isAlreadyProcessed = true
+      }
+      return NextResponse.json(response)
     } catch {
       return internalErrorResponse()
     }
@@ -209,10 +231,27 @@ export async function POST(req: NextRequest): Promise<Response> {
     !casinoSessionId ||
     !gameId ||
     (txType !== 'ROLLBACK' && roundId === undefined) ||
-    !requestCurrency ||
-    !isCoinCurrency(requestCurrency)
+    !requestCurrency
   ) {
-    return NextResponse.json({ error: 'invalid_request' }, { status: 400 })
+    return NextResponse.json(
+      {
+        status: 'ERROR',
+        code: 'INVALID_REQUEST',
+        message: 'Invalid request parameters',
+      },
+      { status: 400 },
+    )
+  }
+
+  if (!isCoinCurrency(requestCurrency)) {
+    return NextResponse.json(
+      {
+        status: 'ERROR',
+        code: 'INVALID_REQUEST',
+        message: 'Request Made with invalid currency.',
+      },
+      { status: 500 },
+    )
   }
 
   let session:
@@ -256,7 +295,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         code: 'SESSION_EXPIRED',
         message: 'Game Session Expired',
       },
-      { status: 403 },
+      { status: 500 },
     )
   }
 
@@ -267,7 +306,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         code: 'SESSION_EXPIRED',
         message: 'Game Session Expired',
       },
-      { status: 403 },
+      { status: 500 },
     )
   }
 
@@ -392,33 +431,85 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     let refundResult: { status: 'success' | 'already_processed' | 'not_found' } | undefined
 
+    if (txType === 'BET' || txType === 'BET_WIN') {
+      const hpBalance = await getHPBalance(effectivePlayerId, effectiveCurrency)
+      if (hpBalance < betAmount) {
+        return NextResponse.json(
+          {
+            status: 'ERROR',
+            code: 'INVALID_REQUEST',
+            message: 'Insufficient funds',
+          },
+          { status: 400 },
+        )
+      }
+    }
+
     switch (txType) {
       case 'BET': {
         ctx.logger.info('======About to call round.bet handler======')
         const startBet = performance.now()
-        await handlers['round.bet'](mappedBet, { rawBody })
+        const res = await handlers['round.bet'](mappedBet, { rawBody })
         ctx.logger.info('alea_timing_log', {
           step: 'handler_round_bet',
           elapsedMs: performance.now() - startBet,
         })
         ctx.logger.info('======round.bet handler completed======')
-        break
+
+        if (res && res.status !== 'already_processed') {
+          const hpChange = -betAmount
+          const dbChange = -Number(ledger.toBigintAmount(betAmount)) / 10000
+          await updatePlayerDrift(effectivePlayerId, effectiveCurrency, hpChange - dbChange)
+          await applyDriftToWallet(effectivePlayerId, effectiveCurrency)
+        }
+
+        const balance = await getHPBalance(effectivePlayerId, effectiveCurrency)
+        const response: Record<string, any> = {
+          id: payload.id ?? null,
+          realBalance: balance,
+          bonusBalance: 0.0,
+          realAmount: betAmount,
+          bonusAmount: 0.0,
+        }
+        if (res && res.status === 'already_processed') {
+          response.isAlreadyProcessed = true
+        }
+        return NextResponse.json(response)
       }
       case 'WIN': {
         ctx.logger.info('======About to call round.win handler======')
         const startWin = performance.now()
-        await handlers['round.win'](mappedWin, { rawBody })
+        const res = await handlers['round.win'](mappedWin, { rawBody })
         ctx.logger.info('alea_timing_log', {
           step: 'handler_round_win',
           elapsedMs: performance.now() - startWin,
         })
         ctx.logger.info('======round.win handler completed======')
-        break
+
+        if (res && res.status !== 'already_processed') {
+          const hpChange = winAmount
+          const dbChange = Number(ledger.toBigintAmount(winAmount)) / 10000
+          await updatePlayerDrift(effectivePlayerId, effectiveCurrency, hpChange - dbChange)
+          await applyDriftToWallet(effectivePlayerId, effectiveCurrency)
+        }
+
+        const balance = await getHPBalance(effectivePlayerId, effectiveCurrency)
+        const response: Record<string, any> = {
+          id: payload.id ?? null,
+          realBalance: balance,
+          bonusBalance: 0.0,
+          realAmount: winAmount,
+          bonusAmount: 0.0,
+        }
+        if (res && res.status === 'already_processed') {
+          response.isAlreadyProcessed = true
+        }
+        return NextResponse.json(response)
       }
       case 'BET_WIN': {
         ctx.logger.info('======About to call round.bet handler for BET_WIN======')
         const startBetWinBet = performance.now()
-        await handlers['round.bet'](mappedBet, { rawBody })
+        const resBet = await handlers['round.bet'](mappedBet, { rawBody })
         ctx.logger.info('alea_timing_log', {
           step: 'handler_round_bet_win_bet',
           elapsedMs: performance.now() - startBetWinBet,
@@ -427,13 +518,48 @@ export async function POST(req: NextRequest): Promise<Response> {
 
         ctx.logger.info('======About to call round.win handler for BET_WIN======')
         const startBetWinWin = performance.now()
-        await handlers['round.win'](mappedWin, { rawBody })
+        const resWin = await handlers['round.win'](mappedWin, { rawBody })
         ctx.logger.info('alea_timing_log', {
           step: 'handler_round_bet_win_win',
           elapsedMs: performance.now() - startBetWinWin,
         })
         ctx.logger.info('======round.win handler for BET_WIN completed======')
-        break
+
+        if (
+          (!resBet || resBet.status !== 'already_processed') &&
+          (!resWin || resWin.status !== 'already_processed')
+        ) {
+          const hpChange = winAmount - betAmount
+          const dbChange =
+            (Number(ledger.toBigintAmount(winAmount)) - Number(ledger.toBigintAmount(betAmount))) /
+            10000
+          await updatePlayerDrift(effectivePlayerId, effectiveCurrency, hpChange - dbChange)
+          await applyDriftToWallet(effectivePlayerId, effectiveCurrency)
+        }
+
+        const balance = await getHPBalance(effectivePlayerId, effectiveCurrency)
+        const response: Record<string, any> = {
+          id: payload.id ?? null,
+          realBalance: balance,
+          bonusBalance: 0.0,
+          bet: {
+            realAmount: betAmount,
+            bonusAmount: 0.0,
+          },
+          win: {
+            realAmount: winAmount,
+            bonusAmount: 0.0,
+          },
+        }
+        if (
+          resBet &&
+          resBet.status === 'already_processed' &&
+          resWin &&
+          resWin.status === 'already_processed'
+        ) {
+          response.isAlreadyProcessed = true
+        }
+        return NextResponse.json(response)
       }
       case 'ROLLBACK': {
         ctx.logger.info('======About to call round.refund handler======')
@@ -444,93 +570,125 @@ export async function POST(req: NextRequest): Promise<Response> {
           elapsedMs: performance.now() - startRefund,
         })
         ctx.logger.info('======round.refund handler completed======')
-        break
+
+        let originalHpAmount = 0
+        let originalDbAmount = 0
+        let originalType: 'bet' | 'win' = 'bet'
+        if (payload.transaction?.id) {
+          const txLogs = await ctx.db
+            .select({
+              action: schema.auditLog.action,
+              metadata: schema.auditLog.metadata,
+            })
+            .from(schema.auditLog)
+            .where(
+              and(
+                inArray(schema.auditLog.action, [
+                  'webhook.alea.round_bet',
+                  'webhook.alea.round_win',
+                ]),
+                sql`metadata->>'tx_id' = ${String(payload.transaction.id)}`,
+              ),
+            )
+            .limit(1)
+          const log = txLogs[0]
+          if (log && typeof log.metadata === 'object' && log.metadata !== null) {
+            const meta = log.metadata as Record<string, unknown>
+            originalHpAmount = Number(meta.amount ?? 0)
+            originalType = log.action === 'webhook.alea.round_win' ? 'win' : 'bet'
+            originalDbAmount = Number(ledger.toBigintAmount(originalHpAmount)) / 10000
+          }
+        }
+
+        if (
+          refundResult &&
+          refundResult.status !== 'already_processed' &&
+          refundResult.status !== 'not_found'
+        ) {
+          const hpChange = originalType === 'win' ? -originalHpAmount : originalHpAmount
+          const dbChange = originalType === 'win' ? -originalDbAmount : originalDbAmount
+          await updatePlayerDrift(effectivePlayerId, effectiveCurrency, hpChange - dbChange)
+          await applyDriftToWallet(effectivePlayerId, effectiveCurrency)
+        }
+
+        const balance = await getHPBalance(effectivePlayerId, effectiveCurrency)
+
+        if (refundResult) {
+          if (refundResult.status === 'already_processed') {
+            return NextResponse.json({
+              id: payload.id ?? null,
+              realBalance: balance,
+              bonusBalance: 0.0,
+              isAlreadyProcessed: true,
+            })
+          }
+          if (refundResult.status === 'not_found') {
+            return NextResponse.json({
+              id: payload.id ?? null,
+              realBalance: balance,
+              bonusBalance: 0.0,
+              isNotFound: true,
+            })
+          }
+        }
+
+        return NextResponse.json({
+          id: payload.id ?? null,
+          realBalance: balance,
+          bonusBalance: 0.0,
+        })
       }
       case 'END_ROUND': {
         ctx.logger.info('======About to call round.end handler======')
         const startEndRound = performance.now()
-        await handlers['round.end'](mappedEndRound, { rawBody })
+        const res = await handlers['round.end'](mappedEndRound, { rawBody })
         ctx.logger.info('alea_timing_log', {
           step: 'handler_round_end',
           elapsedMs: performance.now() - startEndRound,
         })
         ctx.logger.info('======round.end handler completed======')
-        break
+
+        const balance = await getHPBalance(effectivePlayerId, effectiveCurrency)
+        const response: Record<string, any> = {
+          id: payload.id ?? null,
+          realBalance: balance,
+          bonusBalance: 0.0,
+          realAmount: betAmount,
+          bonusAmount: 0.0,
+        }
+        if (res && res.status === 'already_processed') {
+          response.isAlreadyProcessed = true
+        }
+        return NextResponse.json(response)
       }
       default:
         ctx.logger.error('Invalid transaction type', { txType, payload })
         return NextResponse.json({ error: 'invalid_request' }, { status: 400 })
     }
-
-    const startGetBalance = performance.now()
-    const balance = await ledger.getBalance(ctx, effectivePlayerId, effectiveCurrency)
-    ctx.logger.info('alea_timing_log', {
-      step: 'ledger_get_balance',
-      elapsedMs: performance.now() - startGetBalance,
-    })
-    if (!balance.ok) return internalErrorResponse()
-
-    if (txType === 'BET_WIN') {
-      const balanceInMajorUnits = Number(balance.value.currentBalance) / 10000
-      return NextResponse.json({
-        id: payload.id ?? null,
-        realBalance: balanceInMajorUnits,
-        bonusBalance: 0.0,
-        bet: {
-          realAmount: betAmount,
-          bonusAmount: 0.0,
-        },
-        win: {
-          realAmount: winAmount,
-          bonusAmount: 0.0,
-        },
-      })
-    }
-
-    const balanceInMajorUnits = Number(balance.value.currentBalance) / 10000
-
-    // Handle ROLLBACK response with idempotency flags
-    if (txType === 'ROLLBACK' && refundResult) {
-      if (refundResult.status === 'already_processed') {
-        return NextResponse.json({
-          id: payload.id ?? null,
-          realBalance: balanceInMajorUnits,
-          bonusBalance: 0.0,
-          isAlreadyProcessed: true,
-        })
-      }
-
-      if (refundResult.status === 'not_found') {
-        return NextResponse.json({
-          id: payload.id ?? null,
-          realBalance: balanceInMajorUnits,
-          bonusBalance: 0.0,
-          isNotFound: true,
-        })
-      }
-    }
-
-    const responseAmount = txType === 'WIN' ? winAmount : betAmount
-
-    ctx.logger.info('Alea transaction response=======>>>>>', {
-      response: {
-        id: payload.id ?? null,
-        realBalance: balanceInMajorUnits,
-        bonusBalance: 0.0,
-        realAmount: responseAmount,
-        bonusAmount: 0.0,
-      },
-    })
-
-    return NextResponse.json({
-      id: payload.id ?? null,
-      realBalance: balanceInMajorUnits,
-      bonusBalance: 0.0,
-      realAmount: responseAmount,
-      bonusAmount: 0.0,
-    })
   } catch (error) {
-    ctx.logger.error('Error processing Alea webhook', { error: JSON.stringify(error) })
+    ctx.logger.error('Error processing Alea webhook', { error: String(error) })
+
+    if (error instanceof Error && error.name === 'TombstonedRoundError') {
+      return NextResponse.json(
+        {
+          status: 'ERROR',
+          code: 'INVALID_REQUEST',
+          message: 'Round already rolled back',
+        },
+        { status: 400 },
+      )
+    }
+
+    if (error instanceof Error && error.name === 'InsufficientBalanceError') {
+      return NextResponse.json(
+        {
+          status: 'ERROR',
+          code: 'INVALID_REQUEST',
+          message: 'Insufficient funds',
+        },
+        { status: 400 },
+      )
+    }
 
     // Handle specific retryable errors
     if (error instanceof Error && error.name === 'SessionNotFoundError') {

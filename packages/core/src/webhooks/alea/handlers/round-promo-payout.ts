@@ -26,7 +26,7 @@ interface AleaRoundPromoPayoutPayload {
 export async function handleAleaRoundPromoPayout(
   ctx: Context,
   payload: AleaRoundPromoPayoutPayload,
-): Promise<void> {
+): Promise<{ status: 'success' | 'already_processed' } | void> {
   const { playerId, amount, currency, roundId } = payload
 
   if (!isCoinCurrency(currency)) {
@@ -98,6 +98,10 @@ export async function handleAleaRoundPromoPayout(
     throw new Error(`ledger_write_failed:${result.error.code}`)
   }
 
+  if (result.value.status === 'duplicate') {
+    return { status: 'already_processed' }
+  }
+
   // Move audit and realtime updates to background to meet 5-second response SLA
   ctx.afterCommit(async () => {
     try {
@@ -124,4 +128,6 @@ export async function handleAleaRoundPromoPayout(
       })
     }
   })
+
+  return { status: 'success' }
 }

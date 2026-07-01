@@ -4,6 +4,7 @@ import { and, eq, sql } from 'drizzle-orm'
 
 import { schema } from '@coinfrenzy/db'
 import { isCoinCurrency } from '@coinfrenzy/config'
+import { TombstonedRoundError } from '../errors'
 
 import type { Context } from '../../../context'
 import { writeAuditEntry } from '../../../audit/index'
@@ -36,7 +37,7 @@ interface AleaRoundBetPayload {
 export async function handleAleaRoundBet(
   ctx: Context,
   payload: AleaRoundBetPayload,
-): Promise<void> {
+): Promise<{ status: 'success' | 'already_processed' } | void> {
   const startTime = Date.now()
   const { roundId, casinoSessionId, playerId, gameId, amount, currency } = payload
   ctx.logger.info('alea_round_bet_start', { roundId, txId: payload.txId })
@@ -68,7 +69,7 @@ export async function handleAleaRoundBet(
   })
   if (existing[0]) {
     ctx.logger.info('alea_round_bet_duplicate', { roundId })
-    return
+    return { status: 'already_processed' }
   }
 
   const startRollbackCheck = performance.now()
@@ -103,15 +104,16 @@ export async function handleAleaRoundBet(
   })
 
   if (rollbackByRoundRows[0] || txRollbackRows[0]) {
+    const reason =
+      txRollbackRows[0]?.action === 'webhook.alea.pending_rollback'
+        ? 'pending_rollback'
+        : 'rollback_marker'
     ctx.logger.info('alea_round_bet_skipped_rollback_marker', {
       roundId,
       txId: payload.txId,
-      reason:
-        txRollbackRows[0]?.action === 'webhook.alea.pending_rollback'
-          ? 'pending_rollback'
-          : 'rollback_marker',
+      reason,
     })
-    return
+    throw new TombstonedRoundError(`Round already rolled back (${reason}): ${roundId}`)
   }
 
   let resolvedSessionId = payload.resolvedSessionId
@@ -284,6 +286,10 @@ export async function handleAleaRoundBet(
     throw new Error(`ledger_write_failed:${result.error.code}`)
   }
 
+  if (result.value.status === 'duplicate') {
+    return { status: 'already_processed' }
+  }
+
   void invalidateBalanceCache(playerId, currency).catch((error) => {
     ctx.logger.error('alea_round_bet_cache_invalidation_failed', {
       roundId,
@@ -342,4 +348,6 @@ export async function handleAleaRoundBet(
     totalElapsed: endTime - startTime,
     ledgerTime: ledgerEndTime - ledgerStartTime,
   })
+
+  return { status: 'success' }
 }

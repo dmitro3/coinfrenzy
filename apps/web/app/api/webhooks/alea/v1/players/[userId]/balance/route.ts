@@ -8,6 +8,7 @@ import { isCoinCurrency } from '@coinfrenzy/config'
 import { schema } from '@coinfrenzy/db'
 
 import { buildWebhookContext } from '@/lib/webhook-context'
+import { getHPBalance } from '../../../drift'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -38,7 +39,7 @@ export async function GET(
         code: 'INVALID_REQUEST',
         message: 'Invalid balance request parameters',
       },
-      { status: 400 },
+      { status: 500 },
     )
   }
 
@@ -146,13 +147,15 @@ export async function GET(
     )
   }
 
+  const realBalance = await getHPBalance(session.playerId, session.currency)
+
   ctx.logger.info('Alea balance response=======>>>>>', {
-    realBalance: Number(balance.value.currentBalance) / 10000,
+    realBalance,
     bonusBalance: 0.0,
   })
 
   return NextResponse.json({
-    realBalance: Number(balance.value.currentBalance) / 10000,
+    realBalance,
     bonusBalance: 0.0,
   })
 }

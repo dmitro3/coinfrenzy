@@ -6,6 +6,7 @@ import { adapters, ledger } from '@coinfrenzy/core'
 import { isCoinCurrency } from '@coinfrenzy/config'
 
 import { buildWebhookContext } from '@/lib/webhook-context'
+import { getPlayerDrift } from '../drift'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -46,8 +47,12 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'wallet_not_found' }, { status: 404 })
   }
 
+  const drift = await getPlayerDrift(parsed.playerId, parsed.currency)
+  const driftMinor = Math.round(drift * 10000)
+  const totalBalance = Number(balance.value.currentBalance) + driftMinor
+
   return NextResponse.json({
-    balance: Number(balance.value.currentBalance),
+    balance: totalBalance,
     currency: parsed.currency,
     timestamp: new Date().toISOString(),
   })
