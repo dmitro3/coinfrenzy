@@ -233,42 +233,47 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
 
       if (!isValidUuid) {
-        return NextResponse.json(
-          {
-            status: 'ERROR',
-            code: 'INVALID_REQUEST',
-            message: 'Invalid bonus template ID',
-          },
-          { status: 500 },
-        )
-      }
-
-      const bonusRows = await ctx.db
-        .select({ id: schema.bonuses.id })
-        .from(schema.bonuses)
-        .where(eq(schema.bonuses.id, bonusId as string))
-        .limit(1)
-      if (bonusRows.length === 0) {
         if (env().NODE_ENV !== 'production' || process.env.ALEA_ENV === 'staging') {
-          await ctx.db
-            .insert(schema.bonuses)
-            .values({
-              id: bonusId as string,
-              slug: `mock-bonus-${bonusId}`,
-              displayName: `Mock Operator Free Spin Bonus`,
-              bonusType: 'promotion',
-              status: 'active',
-            })
-            .onConflictDoNothing()
+          // Bypass UUID check and DB lookup entirely in staging/dev since the bonuses table
+          // uses UUID primary keys and the promo payout handler does not query the table during credit.
         } else {
           return NextResponse.json(
             {
               status: 'ERROR',
               code: 'INVALID_REQUEST',
-              message: 'Bonus template not found',
+              message: 'Invalid bonus template ID',
             },
             { status: 500 },
           )
+        }
+      } else {
+        const bonusRows = await ctx.db
+          .select({ id: schema.bonuses.id })
+          .from(schema.bonuses)
+          .where(eq(schema.bonuses.id, bonusId as string))
+          .limit(1)
+        if (bonusRows.length === 0) {
+          if (env().NODE_ENV !== 'production' || process.env.ALEA_ENV === 'staging') {
+            await ctx.db
+              .insert(schema.bonuses)
+              .values({
+                id: bonusId as string,
+                slug: `mock-bonus-${bonusId}`,
+                displayName: `Mock Operator Free Spin Bonus`,
+                bonusType: 'promotion',
+                status: 'active',
+              })
+              .onConflictDoNothing()
+          } else {
+            return NextResponse.json(
+              {
+                status: 'ERROR',
+                code: 'INVALID_REQUEST',
+                message: 'Bonus template not found',
+              },
+              { status: 500 },
+            )
+          }
         }
       }
     }
@@ -765,10 +770,11 @@ export async function POST(req: NextRequest): Promise<Response> {
     ctx.logger.error('Error processing Alea webhook', { error: String(error) })
 
     if (error instanceof Error && error.name === 'TombstonedRoundError') {
+      const code = txType === 'BET' || txType === 'BET_WIN' ? 'BET_DENIED' : 'INVALID_REQUEST'
       return NextResponse.json(
         {
           status: 'ERROR',
-          code: 'INVALID_REQUEST',
+          code,
           message: 'Round already rolled back',
         },
         { status: 400 },

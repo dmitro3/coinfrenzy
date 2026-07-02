@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from 'drizzle-orm'
+import { and, eq, inArray, or, sql } from 'drizzle-orm'
 
 import { isCoinCurrency } from '@coinfrenzy/config'
 import { schema } from '@coinfrenzy/db'
@@ -28,6 +28,9 @@ interface AleaRoundRefundPayload {
   gameId?: string
   amount?: number
   currency?: string
+  transaction?: {
+    id: string
+  }
 }
 
 interface RoundRefundResult {
@@ -198,6 +201,8 @@ export async function handleAleaRoundRefund(
     return { status: 'not_found' }
   }
 
+  const targetTxId = payload.transaction?.id ?? payload.originalTxId
+
   const existingEntries = await ctx.db
     .select({
       leg: schema.ledgerEntries.leg,
@@ -214,7 +219,18 @@ export async function handleAleaRoundRefund(
     .where(
       and(
         inArray(schema.ledgerEntries.source, ['bet', 'win']),
-        eq(schema.ledgerEntries.sourceId, roundId),
+        targetTxId
+          ? or(
+              eq(schema.ledgerEntries.sourceId, String(targetTxId)),
+              and(
+                or(
+                  eq(schema.ledgerEntries.sourceId, roundId),
+                  sql`metadata->>'round_id' = ${roundId}`,
+                ),
+                sql`metadata->>'tx_id' = ${String(targetTxId)}`,
+              ),
+            )
+          : or(eq(schema.ledgerEntries.sourceId, roundId), sql`metadata->>'round_id' = ${roundId}`),
         eq(schema.ledgerEntries.playerId, round.playerId),
         sql`created_at >= now() - interval '3 days'`,
       ),
