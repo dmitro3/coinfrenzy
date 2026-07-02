@@ -45,7 +45,7 @@ export function buildWin(input: WinSpecInput): TransactionSpec {
 
   return {
     source: 'win',
-    sourceId: input.roundId,
+    sourceId: input.metadata?.tx_id ? String(input.metadata.tx_id) : input.roundId,
     playerId: input.playerId,
     entries,
     metadata: {

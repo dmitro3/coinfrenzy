@@ -67,9 +67,21 @@ export async function handleAleaRoundBet(
     step: 'bet_existing_check',
     elapsedMs: performance.now() - startExisting,
   })
-  if (existing[0]) {
-    ctx.logger.info('alea_round_bet_duplicate', { roundId })
-    return { status: 'already_processed' }
+  if (payload.txId) {
+    const existingTx = await ctx.db
+      .select({ id: schema.auditLog.id })
+      .from(schema.auditLog)
+      .where(
+        and(
+          eq(schema.auditLog.action, 'webhook.alea.round_bet'),
+          sql`metadata->>'tx_id' = ${payload.txId}`,
+        ),
+      )
+      .limit(1)
+    if (existingTx[0]) {
+      ctx.logger.info('alea_round_bet_duplicate', { roundId, txId: payload.txId })
+      return { status: 'already_processed' }
+    }
   }
 
   const startRollbackCheck = performance.now()
@@ -215,20 +227,31 @@ export async function handleAleaRoundBet(
     return
   }
 
-  const roundDbId = randomUUID()
+  const existingRound = existing[0]
+  const roundDbId = existingRound ? existingRound.id : randomUUID()
   const startRoundInsert = performance.now()
-  await ctx.db.insert(schema.gameRounds).values({
-    id: roundDbId,
-    sessionId: resolvedSessionId,
-    playerId,
-    gameId: resolvedGameId,
-    externalRoundId: roundId,
-    betAmount: toBigintAmount(amount),
-    winAmount: 0n,
-    currency,
-    status: 'bet_placed',
-    betAt: new Date(),
-  })
+  if (existingRound) {
+    await ctx.db
+      .update(schema.gameRounds)
+      .set({
+        betAmount: sql`${schema.gameRounds.betAmount} + ${toBigintAmount(amount)}`,
+        status: 'bet_placed',
+      })
+      .where(eq(schema.gameRounds.id, roundDbId))
+  } else {
+    await ctx.db.insert(schema.gameRounds).values({
+      id: roundDbId,
+      sessionId: resolvedSessionId,
+      playerId,
+      gameId: resolvedGameId,
+      externalRoundId: roundId,
+      betAmount: toBigintAmount(amount),
+      winAmount: 0n,
+      currency,
+      status: 'bet_placed',
+      betAt: new Date(),
+    })
+  }
   ctx.logger.info('alea_timing_log', {
     step: 'bet_round_insert',
     elapsedMs: performance.now() - startRoundInsert,

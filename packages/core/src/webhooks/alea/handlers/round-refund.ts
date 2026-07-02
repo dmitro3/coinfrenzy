@@ -166,6 +166,26 @@ export async function handleAleaRoundRefund(
 
   if (!round) {
     ctx.logger.info('alea_round_refund_unknown_round', { roundId })
+    if (payload.originalTxId) {
+      await ctx.db.insert(schema.auditLog).values({
+        actorKind: 'system',
+        action: 'webhook.alea.pending_rollback',
+        metadata: {
+          original_tx_id: payload.originalTxId,
+          rollback_tx_id: rollbackTxId ?? null,
+          round_id: roundId ?? null,
+        },
+      })
+    } else {
+      await ctx.db.insert(schema.auditLog).values({
+        actorKind: 'system',
+        action: 'webhook.alea.round_rollback',
+        metadata: {
+          round_id: roundId,
+          rollback_tx_id: rollbackTxId ?? null,
+        },
+      })
+    }
     return { status: 'not_found' }
   }
 
@@ -247,7 +267,9 @@ export async function handleAleaRoundRefund(
     ctx,
     {
       source: 'admin_adjustment',
-      sourceId: `alea_rollback:${roundId}`,
+      sourceId: payload.rollbackTxId
+        ? `alea_rollback:${payload.rollbackTxId}`
+        : `alea_rollback:${roundId}`,
       playerId: round.playerId,
       entries: reversedEntries,
       metadata: {
@@ -270,6 +292,10 @@ export async function handleAleaRoundRefund(
       error: result.error,
     })
     throw new Error(`ledger_write_failed:${result.error.code}`)
+  }
+
+  if (result.value.status === 'duplicate') {
+    return { status: 'already_processed' }
   }
 
   // Move non-critical operations to background to meet 5-second response SLA
