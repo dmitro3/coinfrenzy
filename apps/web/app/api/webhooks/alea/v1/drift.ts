@@ -32,13 +32,16 @@ export async function getHPBalance(playerId: string, currency: string): Promise<
   return Number(row.balance)
 }
 
-export async function applyDriftToWallet(playerId: string, currency: string): Promise<void> {
+export async function applyDriftToWallet(
+  playerId: string,
+  currency: string,
+  delta: number,
+): Promise<void> {
   const { ctx } = buildWebhookContext('alea')
-  const drift = await getPlayerDrift(playerId, currency)
   await ctx.db.execute(sql`
     UPDATE wallets
-    SET current_balance = current_balance + ${drift}::numeric(30, 10),
-        balance_purchased = balance_purchased + ${drift}::numeric(30, 10)
+    SET current_balance = current_balance + ${delta}::numeric(30, 10),
+        balance_purchased = balance_purchased + ${delta}::numeric(30, 10)
     WHERE player_id = ${playerId} AND currency = ${currency}
   `)
 }
