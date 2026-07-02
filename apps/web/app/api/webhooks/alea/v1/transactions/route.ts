@@ -33,7 +33,7 @@ interface AleaTransactionPayload {
     | 'TOURNAMENT'
     | 'ALEA_JACKPOT'
   freeSpin?: { amount?: number; currency?: string; gameId?: string }
-  operatorFreeSpin?: { amount?: number; currency?: string; gameId?: string }
+  operatorFreeSpin?: { amount?: number; currency?: string; gameId?: string; bonusId?: string }
   prize?: { amount?: number; currency?: string; gameId?: string }
   cashback?: { amount?: number; currency?: string; gameId?: string }
   spinGift?: { amount?: number; currency?: string; gameId?: string }
@@ -173,6 +173,48 @@ export async function POST(req: NextRequest): Promise<Response> {
       )
     }
 
+    if (payload.promoType === 'OPERATOR_FREE_SPIN') {
+      const bonusId = payload.operatorFreeSpin?.bonusId
+      let isValidUuid = true
+      try {
+        if (
+          typeof bonusId !== 'string' ||
+          !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(bonusId)
+        ) {
+          isValidUuid = false
+        }
+      } catch {
+        isValidUuid = false
+      }
+
+      if (!isValidUuid) {
+        return NextResponse.json(
+          {
+            status: 'ERROR',
+            code: 'INVALID_REQUEST',
+            message: 'Invalid bonus template ID',
+          },
+          { status: 500 },
+        )
+      }
+
+      const bonusRows = await ctx.db
+        .select({ id: schema.bonuses.id })
+        .from(schema.bonuses)
+        .where(eq(schema.bonuses.id, bonusId as string))
+        .limit(1)
+      if (bonusRows.length === 0) {
+        return NextResponse.json(
+          {
+            status: 'ERROR',
+            code: 'INVALID_REQUEST',
+            message: 'Bonus template not found',
+          },
+          { status: 500 },
+        )
+      }
+    }
+
     try {
       const handlers = webhooks.alea.buildAleaHandlers(ctx)
       const startPromoPayout = performance.now()
@@ -200,7 +242,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         const hpChange = promoData.amount
         const dbChange = Number(ledger.toBigintAmount(promoData.amount)) / 10000
         await updatePlayerDrift(parsedPlayerId, promoCurrency, hpChange - dbChange)
-        await applyDriftToWallet(parsedPlayerId, promoCurrency)
+        await applyDriftToWallet(parsedPlayerId, promoCurrency, hpChange - dbChange)
       }
 
       const balance = await getHPBalance(parsedPlayerId, promoCurrency)
@@ -295,7 +337,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         code: 'SESSION_EXPIRED',
         message: 'Game Session Expired',
       },
-      { status: 500 },
+      { status: 403 },
     )
   }
 
@@ -306,7 +348,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         code: 'SESSION_EXPIRED',
         message: 'Game Session Expired',
       },
-      { status: 500 },
+      { status: 403 },
     )
   }
 
@@ -437,7 +479,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         return NextResponse.json(
           {
             status: 'ERROR',
-            code: 'INVALID_REQUEST',
+            code: 'INSUFFICIENT_FUNDS',
             message: 'Insufficient funds',
           },
           { status: 400 },
@@ -460,7 +502,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           const hpChange = -betAmount
           const dbChange = -Number(ledger.toBigintAmount(betAmount)) / 10000
           await updatePlayerDrift(effectivePlayerId, effectiveCurrency, hpChange - dbChange)
-          await applyDriftToWallet(effectivePlayerId, effectiveCurrency)
+          await applyDriftToWallet(effectivePlayerId, effectiveCurrency, hpChange - dbChange)
         }
 
         const balance = await getHPBalance(effectivePlayerId, effectiveCurrency)
@@ -490,7 +532,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           const hpChange = winAmount
           const dbChange = Number(ledger.toBigintAmount(winAmount)) / 10000
           await updatePlayerDrift(effectivePlayerId, effectiveCurrency, hpChange - dbChange)
-          await applyDriftToWallet(effectivePlayerId, effectiveCurrency)
+          await applyDriftToWallet(effectivePlayerId, effectiveCurrency, hpChange - dbChange)
         }
 
         const balance = await getHPBalance(effectivePlayerId, effectiveCurrency)
@@ -534,7 +576,7 @@ export async function POST(req: NextRequest): Promise<Response> {
             (Number(ledger.toBigintAmount(winAmount)) - Number(ledger.toBigintAmount(betAmount))) /
             10000
           await updatePlayerDrift(effectivePlayerId, effectiveCurrency, hpChange - dbChange)
-          await applyDriftToWallet(effectivePlayerId, effectiveCurrency)
+          await applyDriftToWallet(effectivePlayerId, effectiveCurrency, hpChange - dbChange)
         }
 
         const balance = await getHPBalance(effectivePlayerId, effectiveCurrency)
@@ -608,7 +650,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           const hpChange = originalType === 'win' ? -originalHpAmount : originalHpAmount
           const dbChange = originalType === 'win' ? -originalDbAmount : originalDbAmount
           await updatePlayerDrift(effectivePlayerId, effectiveCurrency, hpChange - dbChange)
-          await applyDriftToWallet(effectivePlayerId, effectiveCurrency)
+          await applyDriftToWallet(effectivePlayerId, effectiveCurrency, hpChange - dbChange)
         }
 
         const balance = await getHPBalance(effectivePlayerId, effectiveCurrency)
@@ -683,7 +725,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       return NextResponse.json(
         {
           status: 'ERROR',
-          code: 'INVALID_REQUEST',
+          code: 'INSUFFICIENT_FUNDS',
           message: 'Insufficient funds',
         },
         { status: 400 },

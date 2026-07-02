@@ -50,8 +50,8 @@ export async function GET(
   if (!session) {
     return NextResponse.json(
       {
-        status: 'DENIED',
-        code: 'SESSION_EXPIRED',
+        status: 'ERROR',
+        code: 'INVALID_REQUEST',
         message: 'Game Session Expired',
       },
       { status: 500 },

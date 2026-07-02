@@ -188,6 +188,7 @@ export async function handleAleaRoundRefund(
       subBucket: schema.ledgerEntries.subBucket,
       playerId: schema.ledgerEntries.playerId,
       metadata: schema.ledgerEntries.metadata,
+      pairId: schema.ledgerEntries.pairId,
     })
     .from(schema.ledgerEntries)
     .where(
@@ -204,7 +205,22 @@ export async function handleAleaRoundRefund(
     return { status: 'not_found' }
   }
 
-  const reversedEntries: EntrySpec[] = existingEntries
+  const pairId = existingEntries[0].pairId
+  const allTxEntries = await ctx.db
+    .select({
+      leg: schema.ledgerEntries.leg,
+      accountKind: schema.ledgerEntries.accountKind,
+      accountId: schema.ledgerEntries.accountId,
+      amount: schema.ledgerEntries.amount,
+      currency: schema.ledgerEntries.currency,
+      subBucket: schema.ledgerEntries.subBucket,
+      playerId: schema.ledgerEntries.playerId,
+      metadata: schema.ledgerEntries.metadata,
+    })
+    .from(schema.ledgerEntries)
+    .where(eq(schema.ledgerEntries.pairId, pairId))
+
+  const reversedEntries: EntrySpec[] = allTxEntries
     .filter((e) => isCoinCurrency(e.currency))
     .map((entry) => ({
       leg: entry.leg === 'debit' ? ('credit' as const) : ('debit' as const),
@@ -213,7 +229,7 @@ export async function handleAleaRoundRefund(
       amount: entry.amount,
       currency: entry.currency as 'GC' | 'SC',
       subBucket: normalizeSubBucket(entry.subBucket),
-      playerId: entry.playerId,
+      playerId: entry.playerId ?? undefined,
       metadata: {
         ...(typeof entry.metadata === 'object' && entry.metadata !== null
           ? (entry.metadata as Record<string, unknown>)
