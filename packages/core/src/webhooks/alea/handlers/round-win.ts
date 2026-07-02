@@ -80,9 +80,21 @@ export async function handleAleaRoundWin(
   }
 
   // Idempotency check: if round is already resolved, this is a duplicate win
-  if (round.status === 'resolved') {
-    ctx.logger.info('alea_round_win_duplicate', { roundId, txId: payload.txId })
-    return { status: 'already_processed' }
+  if (payload.txId) {
+    const existingTx = await ctx.db
+      .select({ id: schema.auditLog.id })
+      .from(schema.auditLog)
+      .where(
+        and(
+          eq(schema.auditLog.action, 'webhook.alea.round_win'),
+          sql`metadata->>'tx_id' = ${payload.txId}`,
+        ),
+      )
+      .limit(1)
+    if (existingTx[0]) {
+      ctx.logger.info('alea_round_win_duplicate', { roundId, txId: payload.txId })
+      return { status: 'already_processed' }
+    }
   }
 
   const startRollbackCheck = performance.now()
@@ -143,7 +155,7 @@ export async function handleAleaRoundWin(
   await ctx.db
     .update(schema.gameRounds)
     .set({
-      winAmount: toBigintAmount(amount),
+      winAmount: sql`${schema.gameRounds.winAmount} + ${toBigintAmount(amount)}`,
       status: 'resolved',
       wonAt: new Date(),
     })

@@ -4,7 +4,7 @@ import { and, eq, inArray, sql } from 'drizzle-orm'
 import { NextResponse, type NextRequest } from 'next/server'
 
 import { adapters, ledger, webhooks } from '@coinfrenzy/core'
-import { isCoinCurrency } from '@coinfrenzy/config'
+import { env, isCoinCurrency } from '@coinfrenzy/config'
 import { schema } from '@coinfrenzy/db'
 import { handleAleaRoundRefund } from '@coinfrenzy/core/webhooks/alea/handlers/round-refund'
 
@@ -140,6 +140,51 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'invalid_request' }, { status: 400 })
   }
 
+  const playerCompositeId = payload.player?.casinoPlayerId ?? payload.playerId
+  const playerIdFromPayload = playerCompositeId?.split('_')?.[0]
+  const currencyFromPayload = playerCompositeId?.split('_')?.[1]
+
+  if (playerIdFromPayload) {
+    let isValidPlayerUuid = true
+    try {
+      if (
+        typeof playerIdFromPayload !== 'string' ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(playerIdFromPayload)
+      ) {
+        isValidPlayerUuid = false
+      }
+    } catch {
+      isValidPlayerUuid = false
+    }
+
+    if (!isValidPlayerUuid) {
+      return NextResponse.json(
+        {
+          status: 'ERROR',
+          code: 'INVALID_REQUEST',
+          message: "Player couldn't be found in casino's system.",
+        },
+        { status: 500 },
+      )
+    }
+
+    const playerRows = await ctx.db
+      .select({ id: schema.players.id })
+      .from(schema.players)
+      .where(eq(schema.players.id, playerIdFromPayload))
+      .limit(1)
+    if (playerRows.length === 0) {
+      return NextResponse.json(
+        {
+          status: 'ERROR',
+          code: 'INVALID_REQUEST',
+          message: "Player couldn't be found in casino's system.",
+        },
+        { status: 500 },
+      )
+    }
+  }
+
   ctx.logger.info('Alea transaction received==========>>>>', { payload })
 
   if (txType === 'PROMO_PAYOUT') {
@@ -204,14 +249,27 @@ export async function POST(req: NextRequest): Promise<Response> {
         .where(eq(schema.bonuses.id, bonusId as string))
         .limit(1)
       if (bonusRows.length === 0) {
-        return NextResponse.json(
-          {
-            status: 'ERROR',
-            code: 'INVALID_REQUEST',
-            message: 'Bonus template not found',
-          },
-          { status: 500 },
-        )
+        if (env().NODE_ENV !== 'production' || process.env.ALEA_ENV === 'staging') {
+          await ctx.db
+            .insert(schema.bonuses)
+            .values({
+              id: bonusId as string,
+              slug: `mock-bonus-${bonusId}`,
+              displayName: `Mock Operator Free Spin Bonus`,
+              bonusType: 'promotion',
+              status: 'active',
+            })
+            .onConflictDoNothing()
+        } else {
+          return NextResponse.json(
+            {
+              status: 'ERROR',
+              code: 'INVALID_REQUEST',
+              message: 'Bonus template not found',
+            },
+            { status: 500 },
+          )
+        }
       }
     }
 
@@ -261,10 +319,6 @@ export async function POST(req: NextRequest): Promise<Response> {
       return internalErrorResponse()
     }
   }
-
-  const playerCompositeId = payload.player?.casinoPlayerId ?? payload.playerId
-  const playerIdFromPayload = playerCompositeId?.split('_')?.[0]
-  const currencyFromPayload = playerCompositeId?.split('_')?.[1]
 
   const rollbackPlayerId = playerIdFromPayload
   const rollbackCurrency = currencyFromPayload ?? requestCurrency
@@ -478,7 +532,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       if (hpBalance < betAmount) {
         return NextResponse.json(
           {
-            status: 'ERROR',
+            status: 'DENIED',
             code: 'INSUFFICIENT_FUNDS',
             message: 'Insufficient funds',
           },
@@ -724,7 +778,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (error instanceof Error && error.name === 'InsufficientBalanceError') {
       return NextResponse.json(
         {
-          status: 'ERROR',
+          status: 'DENIED',
           code: 'INSUFFICIENT_FUNDS',
           message: 'Insufficient funds',
         },

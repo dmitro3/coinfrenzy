@@ -62,7 +62,7 @@ export function buildBet(input: BetSpecInput): BuiltBet {
 
   const spec: TransactionSpec = {
     source: 'bet',
-    sourceId: input.roundId,
+    sourceId: input.metadata?.tx_id ? String(input.metadata.tx_id) : input.roundId,
     playerId: input.playerId,
     entries,
     metadata: {
